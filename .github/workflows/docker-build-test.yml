@@ -1,0 +1,96 @@
+name: Docker Build & Smoke Test
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - docker/**
+      - packages/**
+      - pnpm-lock.yaml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docker-smoke:
+    name: Build image + smoke test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: druckform:ci-test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke — druck --help exits 0
+        run: docker run --rm druckform:ci-test --help
+
+      - name: Smoke — druck templates --json is valid contract
+        run: |
+          docker run --rm druckform:ci-test templates --json > /tmp/templates.json
+          node -e "
+            const d = require('/tmp/templates.json');
+            if (d.schemaVersion !== '1') throw new Error('bad schemaVersion');
+            if (!Array.isArray(d.templates)) throw new Error('no templates array');
+            console.log('OK - templates contract valid, count:', d.templates.length);
+          "
+
+      - name: Smoke — druck components --template base --json is valid contract
+        run: |
+          docker run --rm druckform:ci-test components --template base --json > /tmp/components.json
+          node -e "
+            const d = require('/tmp/components.json');
+            if (d.schemaVersion !== '1') throw new Error('bad schemaVersion');
+            if (!d.components.some(c => c.name === 'infobox')) throw new Error('infobox missing');
+            console.log('OK - components contract valid');
+          "
+
+      - name: Smoke — druck lint (valid fixture) exits 0
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/packages/druckform/tests/fixtures:/fixtures:ro" \
+            druckform:ci-test lint \
+              --template base \
+              --in /fixtures/documents/valid.md \
+              --json > /tmp/lint.json
+          node -e "
+            const d = require('/tmp/lint.json');
+            if (!d.ok) throw new Error('lint failed: ' + JSON.stringify(d.findings));
+            console.log('OK - lint passed');
+          "
+
+      - name: Smoke — druck lint (invalid fixture) exits non-zero
+        run: |
+          set +e
+          docker run --rm \
+            -v "${{ github.workspace }}/packages/druckform/tests/fixtures:/fixtures:ro" \
+            druckform:ci-test lint \
+              --template base \
+              --in /fixtures/documents/invalid-missing-required.md \
+              --json > /tmp/lint-invalid.json
+          EXIT_CODE=$?
+          set -e
+          node -e "
+            const d = require('/tmp/lint-invalid.json');
+            if (d.ok) throw new Error('Expected lint to fail but it passed');
+            if (d.findings.length === 0) throw new Error('Expected findings but got none');
+            console.log('OK - invalid document correctly rejected');
+          "
+          if [ "$EXIT_CODE" -eq 0 ]; then
+            echo "ERROR: Expected non-zero exit code for invalid document"
+            exit 1
+          fi
