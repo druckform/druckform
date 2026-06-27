@@ -11,17 +11,18 @@ export function renderPlantUML(
   styleConfig: StyleConfig,
   workDir: string,
   index: number,
+  styleDir?: string,
 ): string {
   const inputFile = path.join(workDir, `plantuml-${index}.puml`);
   const svgFile = path.join(workDir, `plantuml-${index}.svg`);
   const pdfFile = path.join(workDir, `plantuml-${index}.pdf`);
 
-  // Prepend skin if configured
+  // Prepend skin if configured — skin files live beside style.yaml, not in workDir
   let fullContent = content;
   const skinRef = styleConfig.diagrams?.plantuml?.skinRef;
   if (skinRef) {
-    // Validate the path doesn't escape the assets root (workDir as root)
-    const safeSkinPath = resolveAssetPath(workDir, skinRef);
+    const root = styleDir ?? workDir;
+    const safeSkinPath = resolveAssetPath(root, skinRef);
     fullContent = `!include ${safeSkinPath}\n${content}`;
   }
   fs.writeFileSync(inputFile, fullContent, "utf8");

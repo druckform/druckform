@@ -13,6 +13,7 @@ export async function prerenderDiagrams(
   doc: ParsedDocument,
   styleConfig: StyleConfig,
   workDir: string,
+  styleDir?: string,
 ): Promise<Map<string, string>> {
   const results = new Map<string, string>();
   let mermaidIdx = 0;
@@ -30,7 +31,7 @@ export async function prerenderDiagrams(
       const fence = match[0]!;
       const content = match[1]!;
       if (!results.has(fence)) {
-        results.set(fence, renderPlantUML(content, styleConfig, workDir, plantumlIdx++));
+        results.set(fence, renderPlantUML(content, styleConfig, workDir, plantumlIdx++, styleDir));
       }
     }
   }

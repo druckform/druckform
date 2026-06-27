@@ -47,7 +47,7 @@ export async function renderCommand(
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "druckform-"));
 
   try {
-    const diagramMap = await prerenderDiagrams(doc, styleConfig, workDir);
+    const diagramMap = await prerenderDiagrams(doc, styleConfig, workDir, path.dirname(stylePath));
     const { tex, sourceMap } = composeDocument(doc, resolved, styleConfig, diagramMap);
 
     const texPath = path.join(workDir, "document.tex");
