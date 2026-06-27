@@ -15,9 +15,6 @@ export function createHttpServer(store: JobStore) {
   // PUT /upload/:token — receive zip bundle
   app.put<{ Params: { token: string } }>(
     "/upload/:token",
-    {
-      config: { rawBody: true },
-    },
     async (req, reply) => {
       const { token } = req.params;
       const validation = validateToken(token, "upload");
@@ -29,6 +26,9 @@ export function createHttpServer(store: JobStore) {
       if (!job) return reply.code(404).send({ error: "Job not found" });
       if (job.uploadUsed) return reply.code(409).send({ error: "Upload token already used" });
 
+      // Claim the slot synchronously before suspending on await to prevent race condition
+      store.update(job.id, { uploadUsed: true });
+
       const zipPath = path.join(job.dir, "bundle.zip");
       const writeStream = fs.createWriteStream(zipPath);
 
@@ -39,7 +39,7 @@ export function createHttpServer(store: JobStore) {
       });
 
       consumeToken(token);
-      store.update(job.id, { status: "uploaded", uploadUsed: true });
+      store.update(job.id, { status: "uploaded" });
       return reply.code(200).send({ ok: true });
     },
   );

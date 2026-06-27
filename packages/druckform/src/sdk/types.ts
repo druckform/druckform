@@ -76,6 +76,7 @@ export interface RenderCtx {
 // ── Components ──────────────────────────────────────────────────────────────
 
 export type Component<TSchema extends ZodObject<ZodRawShape>> = (
+  // rollup-plugin-dts re-exports z.infer<T> as `infer<T>` (keyword collision) — use _output directly
   params: TSchema["_output"],
   children: string,
   ctx: RenderCtx,
