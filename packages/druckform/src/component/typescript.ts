@@ -1,0 +1,59 @@
+import path from "node:path";
+import esbuild from "esbuild";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import type { ComponentDef, ComponentMeta } from "../sdk/types.js";
+import { z } from "zod";
+
+export async function loadTypeScriptComponent(tsPath: string): Promise<ComponentDef> {
+  // Bundle the TS component to a temp ESM file in memory
+  const result = await esbuild.build({
+    entryPoints: [tsPath],
+    bundle: true,
+    format: "esm",
+    platform: "node",
+    write: false,
+    packages: "external", // don't bundle node_modules
+    target: "node22",
+  });
+
+  const code = result.outputFiles[0]?.text;
+  if (!code) throw new Error(`esbuild produced no output for ${tsPath}`);
+
+  // Write to a temp file and import (data URL import not reliable for all deps)
+  const tmpFile = path.join(
+    path.dirname(tsPath),
+    `.druckform-tmp-${Date.now()}.mjs`,
+  );
+  const fs = await import("node:fs/promises");
+  await fs.writeFile(tmpFile, code, "utf8");
+
+  try {
+    const mod = await import(tmpFile) as {
+      schema: z.ZodObject<z.ZodRawShape>;
+      meta: ComponentMeta;
+      render: (params: unknown, children: string, ctx: unknown) => string;
+    };
+
+    if (!mod.schema || !mod.meta || !mod.render) {
+      throw new Error(`Component ${tsPath} must export schema, meta, and render`);
+    }
+
+    const jsonSchema = zodToJsonSchema(mod.schema, { name: mod.meta.name })
+      .definitions?.[mod.meta.name] ?? zodToJsonSchema(mod.schema);
+
+    const requiredTokens = new Set(mod.meta.requiredTokens ?? []);
+
+    return {
+      meta: mod.meta,
+      schema: mod.schema,
+      jsonSchema: jsonSchema as Record<string, unknown>,
+      render: (params, children, ctx) => {
+        const validated = mod.schema.parse(params);
+        return mod.render(validated, children, ctx);
+      },
+      requiredTokens,
+    };
+  } finally {
+    await fs.unlink(tmpFile).catch(() => {});
+  }
+}
