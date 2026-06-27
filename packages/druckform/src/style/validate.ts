@@ -3,7 +3,9 @@ import { Ajv } from "ajv";
 import yaml from "js-yaml";
 import type { StyleConfig } from "../sdk/types.js";
 
-// Schema is inlined to avoid import.meta.url path resolution issues when bundled.
+// Schema is inlined (not read from schemas/style-v1.json) to avoid import.meta.url
+// path resolution issues when tsup bundles all commands into dist/cli.js.
+// IMPORTANT: if schemas/style-v1.json is updated, update this copy too.
 const schema = {
   $schema: "http://json-schema.org/draft-07/schema#",
   $id: "style-v1",
