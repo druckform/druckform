@@ -62,10 +62,8 @@ export function hardenedUnzip(zipPath: string, destDir: string): Promise<UnzipRe
           }
 
           const writeStream = fs.createWriteStream(fullPath);
-          let entryBytes = 0;
 
           readStream.on("data", (chunk: Buffer) => {
-            entryBytes += chunk.length;
             totalBytes += chunk.length;
             if (totalBytes > MAX_UNCOMPRESSED_BYTES) {
               readStream.destroy();
@@ -83,6 +81,8 @@ export function hardenedUnzip(zipPath: string, destDir: string): Promise<UnzipRe
           });
 
           writeStream.on("error", (e) => {
+            readStream.destroy();
+            writeStream.destroy();
             zipfile.close();
             resolve({ ok: false, error: `Write error: ${e.message}`, files });
           });
