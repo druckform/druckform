@@ -3,8 +3,60 @@ import { Ajv } from "ajv";
 import yaml from "js-yaml";
 import type { StyleConfig } from "../sdk/types.js";
 
-const schemaPath = new URL("../../schemas/style-v1.json", import.meta.url);
-const schema = JSON.parse(fs.readFileSync(schemaPath, "utf8")) as object;
+// Schema is inlined to avoid import.meta.url path resolution issues when bundled.
+const schema = {
+  $schema: "http://json-schema.org/draft-07/schema#",
+  $id: "style-v1",
+  title: "Druckform Style v1",
+  type: "object",
+  required: ["tokens"],
+  properties: {
+    $schema: { type: "string" },
+    tokens: {
+      type: "object",
+      properties: {
+        colors: {
+          type: "object",
+          additionalProperties: { type: "string", pattern: "^#[0-9A-Fa-f]{6}$" },
+        },
+        fonts: {
+          type: "object",
+          properties: {
+            main: { type: "string" },
+            mono: { type: "string" },
+          },
+          additionalProperties: false,
+        },
+        spacing: {
+          type: "object",
+          additionalProperties: { type: "string" },
+        },
+      },
+      additionalProperties: false,
+    },
+    diagrams: {
+      type: "object",
+      properties: {
+        mermaid: {
+          type: "object",
+          properties: {
+            theme: { type: "string" },
+            themeVariablesRef: { type: "string" },
+          },
+          additionalProperties: false,
+        },
+        plantuml: {
+          type: "object",
+          properties: { skinRef: { type: "string" } },
+          additionalProperties: false,
+        },
+      },
+      additionalProperties: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const ajv = new Ajv();
 const validate = ajv.compile(schema);
 

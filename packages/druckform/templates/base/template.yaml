@@ -1,0 +1,5 @@
+name: base
+description: "Base template — foundational components for all documents."
+components:
+  infobox:
+    source: components/infobox.component.yaml

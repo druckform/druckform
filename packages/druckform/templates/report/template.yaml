@@ -1,0 +1,10 @@
+name: report
+description: "Report template — extends base with a variant-styled callout."
+extends: base
+components:
+  infobox:
+    extends: base.infobox
+    defaults:
+      accent: warning
+  callout:
+    source: components/callout.ts

@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=../../schemas/style-v1.json
+$schema: "style-v1"
+tokens:
+  colors:
+    accent:    "#2E5AAC"
+    warning:   "#B26A00"
+    infoboxBg: "#EEF3FB"
+  fonts:
+    main: "TeX Gyre Pagella"
+    mono: "JetBrains Mono"
+  spacing:
+    blockGap: "0.8em"
+diagrams:
+  mermaid:  { theme: "neutral" }
+  plantuml: { skinRef: "skin.puml" }

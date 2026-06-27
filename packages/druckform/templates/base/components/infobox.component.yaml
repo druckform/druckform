@@ -1,0 +1,15 @@
+name: infobox
+description: "Boxed note with a title and optional body content."
+params:
+  title:  { type: string, required: true }
+  accent: { type: token,  required: false, default: accent }
+slots:
+  children: true
+emits: |
+  \begin{infobox}{\druckAccent}{{{title}}}
+  {{children}}
+  \end{infobox}
+example: |
+  ::: infobox title="Note"
+  Body text, **may contain** nested blocks.
+  :::
