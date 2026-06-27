@@ -1,0 +1,10 @@
+#!/bin/sh
+# Stub: write a minimal SVG to the output path
+OUTPUT=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -o) OUTPUT="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+echo '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"></svg>' > "$OUTPUT"
