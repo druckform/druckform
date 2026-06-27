@@ -1,0 +1,11 @@
+.git/
+node_modules/
+dist/
+coverage/
+.turbo/
+*.tsbuildinfo
+docs/
+.claude/
+.idea/
+*.md
+!README.md
