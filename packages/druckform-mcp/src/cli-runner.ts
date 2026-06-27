@@ -17,6 +17,9 @@ function run(args: string[]): { ok: boolean; stdout: string; stderr: string } {
     encoding: "utf8",
     maxBuffer: 10 * 1024 * 1024,
   });
+  if (result.error) {
+    return { ok: false, stdout: "", stderr: result.error.message };
+  }
   return {
     ok: result.status === 0,
     stdout: result.stdout ?? "",
@@ -24,14 +27,20 @@ function run(args: string[]): { ok: boolean; stdout: string; stderr: string } {
   };
 }
 
+function runOrThrow(args: string[]): string {
+  const { ok, stdout, stderr } = run(args);
+  if (!ok) {
+    throw new Error(`druck ${args[0]} failed: ${stderr || "empty output"}`);
+  }
+  return stdout;
+}
+
 export function listTemplates(): TemplatesContract {
-  const { stdout } = run(["templates"]);
-  return JSON.parse(stdout) as TemplatesContract;
+  return JSON.parse(runOrThrow(["templates"])) as TemplatesContract;
 }
 
 export function listComponents(template: string): ComponentsContract {
-  const { stdout } = run(["components", "--template", template]);
-  return JSON.parse(stdout) as ComponentsContract;
+  return JSON.parse(runOrThrow(["components", "--template", template])) as ComponentsContract;
 }
 
 export function lintDocument(
@@ -39,8 +48,7 @@ export function lintDocument(
   inFile: string,
   stylePath: string,
 ): LintContract {
-  const { stdout } = run(["lint", "--template", template, "--in", inFile, "--style", stylePath]);
-  return JSON.parse(stdout) as LintContract;
+  return JSON.parse(runOrThrow(["lint", "--template", template, "--in", inFile, "--style", stylePath])) as LintContract;
 }
 
 export function renderDocument(
@@ -50,13 +58,12 @@ export function renderDocument(
   assetsDir: string,
   outPdf: string,
 ): RenderContract {
-  const result = run([
+  return JSON.parse(runOrThrow([
     "render",
     "--template", template,
     "--style", stylePath,
     "--in", inFile,
     "--assets", assetsDir,
     "--out", outPdf,
-  ]);
-  return JSON.parse(result.stdout) as RenderContract;
+  ])) as RenderContract;
 }

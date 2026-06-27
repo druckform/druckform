@@ -4,6 +4,8 @@ import path from "node:path";
 import { validateToken, consumeToken } from "./url-tokens.js";
 import type { JobStore } from "./job-store.js";
 
+const MAX_UPLOAD_BYTES = 55 * 1024 * 1024; // 55 MB
+
 export function createHttpServer(store: JobStore) {
   const app = Fastify({ logger: false });
 
@@ -31,12 +33,29 @@ export function createHttpServer(store: JobStore) {
 
       const zipPath = path.join(job.dir, "bundle.zip");
       const writeStream = fs.createWriteStream(zipPath);
+      let bytesReceived = 0;
 
-      await new Promise<void>((resolve, reject) => {
-        req.raw.pipe(writeStream);
-        writeStream.on("finish", resolve);
-        writeStream.on("error", reject);
-      });
+      try {
+        await new Promise<void>((resolve, reject) => {
+          req.raw.on("data", (chunk: Buffer) => {
+            bytesReceived += chunk.length;
+            if (bytesReceived > MAX_UPLOAD_BYTES) {
+              req.raw.destroy();
+              writeStream.destroy();
+              reject(new Error(`Upload exceeds maximum size (${MAX_UPLOAD_BYTES} bytes)`));
+            }
+          });
+          req.raw.pipe(writeStream);
+          writeStream.on("finish", resolve);
+          writeStream.on("error", reject);
+        });
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Upload failed";
+        if (msg.includes("exceeds maximum size")) {
+          return reply.code(413).send({ error: msg });
+        }
+        throw e;
+      }
 
       consumeToken(token);
       store.update(job.id, { status: "uploaded" });
