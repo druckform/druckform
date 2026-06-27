@@ -42,8 +42,8 @@ export function composeDocument(
   //   \begin{document}                 line 5+N
   //   [body]                           starts at line 6+N
   //
-  // So body offset = stylePreamble.split("\n").length + 6
-  const PREAMBLE_LINES = stylePreamble.split("\n").length + 6;
+  // So body offset = stylePreamble.split("\n").length + 5
+  const PREAMBLE_LINES = stylePreamble.split("\n").length + 5;
 
   let lineCounter = 0;
 
@@ -78,8 +78,10 @@ export function composeDocument(
       throw new Error(`Unknown component '${block.name}' at line ${block.sourceLine}`);
     }
 
-    // Render children first
+    // Render children first (children track their own lines)
+    const preChildCounter = lineCounter;
     const childLatex = renderNodes(block.children);
+    const childLineCount = lineCounter - preChildCounter;
 
     // Merge defaults with explicit params
     const mergedParams = { ...entry.defaults, ...block.params };
@@ -87,7 +89,17 @@ export function composeDocument(
     // Validate and render
     const latex = entry.def.render(mergedParams, childLatex, ctx);
 
-    trackLines(latex, block.name, block.sourceLine);
+    // Track only the lines added by this component's own template wrapper
+    // (total lines minus the embedded child lines to avoid double-counting)
+    const totalLatexLines = latex.split("\n").length;
+    const componentOwnLines = Math.max(0, totalLatexLines - childLineCount);
+    for (let i = 0; i < componentOwnLines; i++) {
+      lineCounter++;
+      sourceMap.set(lineCounter + PREAMBLE_LINES, {
+        componentName: block.name,
+        sourceLine: block.sourceLine,
+      });
+    }
 
     return latex;
   }
