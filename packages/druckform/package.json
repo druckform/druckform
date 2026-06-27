@@ -1,0 +1,45 @@
+{
+  "name": "druckform",
+  "version": "0.1.0",
+  "description": "Markdown → PDF via LaTeX — engine CLI",
+  "license": "MIT",
+  "engines": { "node": ">=22" },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "druck": "./dist/cli.js",
+    "druckform": "./dist/cli.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "ajv": "^8.17.0",
+    "esbuild": "^0.24.0",
+    "js-yaml": "^4.1.0",
+    "yargs": "^17.7.0",
+    "zod": "^3.23.0",
+    "zod-to-json-schema": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "@types/yargs": "^17.0.0",
+    "typescript": "^5.6.0",
+    "tsup": "^8.3.0",
+    "vitest": "^2.1.0",
+    "@vitest/coverage-v8": "^2.1.0"
+  }
+}
