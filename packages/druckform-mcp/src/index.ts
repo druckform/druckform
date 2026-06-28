@@ -9,7 +9,7 @@ const store = new JobStore();
 process.on("SIGTERM", () => { store.destroy(); process.exit(0); });
 process.on("SIGINT",  () => { store.destroy(); process.exit(0); });
 
-const baseUrl = await startHttpServer(store, HTTP_PORT);
+const { url: baseUrl } = await startHttpServer(store, HTTP_PORT);
 console.error(`[druckform-mcp] HTTP server listening on ${baseUrl}`);
 console.error("[druckform-mcp] Starting MCP server on stdio...");
 

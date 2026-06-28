@@ -66,11 +66,13 @@ describe("HTTP server", () => {
     const savedEnv = process.env["DRUCKFORM_HTTP_BIND"];
     process.env["DRUCKFORM_HTTP_BIND"] = "0.0.0.0";
     const isolatedStore = new JobStore();
+    let server: { url: string; close: () => Promise<void>; boundHost: string } | undefined;
     try {
-      const url = await startHttpServer(isolatedStore, 7399);
-      // baseUrl is always the host-side 127.0.0.1 address
-      expect(url).toBe("http://127.0.0.1:7399");
+      server = await startHttpServer(isolatedStore, 7399);
+      expect(server.url).toBe("http://127.0.0.1:7399");
+      expect(server.boundHost).toBe("0.0.0.0");
     } finally {
+      await server?.close();
       await isolatedStore.destroy();
       if (savedEnv === undefined) {
         delete process.env["DRUCKFORM_HTTP_BIND"];

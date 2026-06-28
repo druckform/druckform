@@ -96,9 +96,16 @@ export function createHttpServer(store: JobStore) {
   return app;
 }
 
-export async function startHttpServer(store: JobStore, port = 7331): Promise<string> {
+export async function startHttpServer(
+  store: JobStore,
+  port = 7331,
+): Promise<{ url: string; close: () => Promise<void>; boundHost: string }> {
   const app = createHttpServer(store);
   const host = process.env["DRUCKFORM_HTTP_BIND"] ?? "127.0.0.1";
   await app.listen({ port, host });
-  return `http://127.0.0.1:${port}`;
+  return {
+    url: `http://127.0.0.1:${port}`,
+    close: () => app.close(),
+    boundHost: host,
+  };
 }
