@@ -1,8 +1,8 @@
-import { z } from "zod";
 import path from "node:path";
+import { z } from "zod";
 import { lintDocument } from "../cli-runner.js";
-import { hardenedUnzip } from "../unzip.js";
 import type { JobStore } from "../job-store.js";
+import { hardenedUnzip } from "../unzip.js";
 
 const schema = z.object({ job_id: z.string() });
 

@@ -1,10 +1,10 @@
 import type {
-  ParsedDocument,
-  ResolvedTemplate,
-  StyleConfig,
-  SourceMap,
   ASTNode,
+  ParsedDocument,
   RenderCtx,
+  ResolvedTemplate,
+  SourceMap,
+  StyleConfig,
 } from "../sdk/types.js";
 import { compileStyle, tokenMacro } from "../style/compiler.js";
 import { mdToLatex } from "./md-to-latex.js";

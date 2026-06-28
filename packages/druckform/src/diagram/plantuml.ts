@@ -1,10 +1,10 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import type { StyleConfig } from "../sdk/types.js";
 import { resolveAssetPath } from "../sdk/asset-path.js";
+import type { StyleConfig } from "../sdk/types.js";
 
-const PLANTUML_JAR = process.env["PLANTUML_JAR"] ?? "/usr/local/lib/plantuml.jar";
+const PLANTUML_JAR = process.env.PLANTUML_JAR ?? "/usr/local/lib/plantuml.jar";
 
 export function renderPlantUML(
   content: string,
@@ -27,11 +27,9 @@ export function renderPlantUML(
   }
   fs.writeFileSync(inputFile, fullContent, "utf8");
 
-  const result = spawnSync(
-    "java",
-    ["-jar", PLANTUML_JAR, "-tsvg", "-o", workDir, inputFile],
-    { encoding: "utf8" },
-  );
+  const result = spawnSync("java", ["-jar", PLANTUML_JAR, "-tsvg", "-o", workDir, inputFile], {
+    encoding: "utf8",
+  });
   if (result.status !== 0) {
     throw new Error(`PlantUML rendering failed: ${result.stderr}`);
   }

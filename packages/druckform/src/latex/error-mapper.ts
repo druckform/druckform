@@ -12,13 +12,11 @@ export function mapErrors(log: string, sourceMap: SourceMap): Finding[] {
     const lineMatch = ERROR_LINE_RE.exec(line);
     if (!lineMatch) continue;
 
-    const texLine = parseInt(lineMatch[1]!, 10);
+    const texLine = Number.parseInt(lineMatch[1] ?? "0", 10);
     const entry = sourceMap.get(texLine);
 
     const undefMatch = UNDEFINED_RE.exec(line);
-    const message = undefMatch
-      ? `Undefined LaTeX command: \\${undefMatch[1]}`
-      : line.trim();
+    const message = undefMatch ? `Undefined LaTeX command: \\${undefMatch[1]}` : line.trim();
 
     findings.push({
       severity: "error",

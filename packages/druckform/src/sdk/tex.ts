@@ -32,10 +32,7 @@ export const raw = (value: string) => new RawTeX(value);
  * Tex`\textbf{${userTitle}}`          // userTitle is escaped
  * Tex`\color{${raw(tokenMacro)}}{}`   // tokenMacro inserted as-is
  */
-export function Tex(
-  strings: TemplateStringsArray,
-  ...values: Array<string | RawTeX>
-): string {
+export function Tex(strings: TemplateStringsArray, ...values: Array<string | RawTeX>): string {
   let out = "";
   for (let i = 0; i < strings.length; i++) {
     out += strings.raw[i];

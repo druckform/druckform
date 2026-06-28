@@ -1,10 +1,10 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { templatesCommand } from "./commands/templates.js";
 import { componentsCommand } from "./commands/components.js";
 import { lintCommand } from "./commands/lint.js";
-import { renderCommand } from "./commands/render.js";
 import { mcpCommand } from "./commands/mcp.js";
+import { renderCommand } from "./commands/render.js";
+import { templatesCommand } from "./commands/templates.js";
 
 yargs(hideBin(process.argv))
   .scriptName("druck")
@@ -13,7 +13,9 @@ yargs(hideBin(process.argv))
     "templates",
     "List available templates (Sätze)",
     (y) => y.option("json", { type: "boolean", default: false }),
-    (argv) => { templatesCommand(argv.json); },
+    (argv) => {
+      templatesCommand(argv.json);
+    },
   )
   .command(
     "components",
@@ -22,7 +24,9 @@ yargs(hideBin(process.argv))
       y
         .option("template", { alias: "t", type: "string", demandOption: true })
         .option("json", { type: "boolean", default: false }),
-    async (argv) => { await componentsCommand(argv.template, argv.json); },
+    async (argv) => {
+      await componentsCommand(argv.template, argv.json);
+    },
   )
   .command(
     "lint",
@@ -34,7 +38,7 @@ yargs(hideBin(process.argv))
         .option("style", { type: "string" })
         .option("json", { type: "boolean", default: false }),
     async (argv) => {
-      await lintCommand(argv.template, argv["in"], argv.style, argv.json);
+      await lintCommand(argv.template, argv.in, argv.style, argv.json);
     },
   )
   .command(
@@ -49,21 +53,16 @@ yargs(hideBin(process.argv))
         .option("out", { type: "string", demandOption: true })
         .option("json", { type: "boolean", default: false }),
     async (argv) => {
-      await renderCommand(
-        argv.template,
-        argv.style,
-        argv["in"],
-        argv.assets,
-        argv.out,
-        argv.json,
-      );
+      await renderCommand(argv.template, argv.style, argv.in, argv.assets, argv.out, argv.json);
     },
   )
   .command(
     "mcp",
     "Start the MCP server (requires druckform-mcp installed)",
     () => {},
-    () => { mcpCommand(); },
+    () => {
+      mcpCommand();
+    },
   )
   .demandCommand(1, "Specify a subcommand.")
   .strict()

@@ -6,9 +6,13 @@
     "druckform": {
       "command": "docker",
       "args": [
-        "run", "--rm", "-i",
-        "-p", "7331:7331",
-        "-e", "DRUCKFORM_HTTP_BIND=0.0.0.0",
+        "run",
+        "--rm",
+        "-i",
+        "-p",
+        "7331:7331",
+        "-e",
+        "DRUCKFORM_HTTP_BIND=0.0.0.0",
         "ghcr.io/corwynt/druckform:latest",
         "mcp"
       ]

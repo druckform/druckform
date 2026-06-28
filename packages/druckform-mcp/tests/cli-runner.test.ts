@@ -1,14 +1,11 @@
 import path from "node:path";
-import { describe, expect, it, beforeAll } from "vitest";
-import { listTemplates, listComponents } from "../src/cli-runner.js";
+import { beforeAll, describe, expect, it } from "vitest";
+import { listComponents, listTemplates } from "../src/cli-runner.js";
 
 // Point DRUCK_BIN at the built druckform CLI
 beforeAll(() => {
-  const druckBin = path.resolve(
-    import.meta.dirname,
-    "../../../packages/druckform/dist/cli.js",
-  );
-  process.env["DRUCK_BIN"] = `node ${druckBin}`;
+  const druckBin = path.resolve(import.meta.dirname, "../../../packages/druckform/dist/cli.js");
+  process.env.DRUCK_BIN = `node ${druckBin}`;
 });
 
 describe("cli-runner", () => {

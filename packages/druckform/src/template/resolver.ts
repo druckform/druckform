@@ -1,7 +1,7 @@
 import path from "node:path";
-import type { ResolvedTemplate, ResolvedComponentEntry } from "../sdk/types.js";
-import type { TemplateEntry } from "./loader.js";
 import { loadComponent } from "../component/loader.js";
+import type { ResolvedComponentEntry, ResolvedTemplate } from "../sdk/types.js";
+import type { TemplateEntry } from "./loader.js";
 
 export async function resolveTemplate(
   name: string,
@@ -15,7 +15,10 @@ export async function resolveTemplate(
   if (!rootEntry) throw new Error(`Template not found: ${rootName}`);
 
   // 2. Walk chain from root to leaf, merging components
-  const mergedComponents = new Map<string, { sourcePath: string; defaults: Record<string, string> }>();
+  const mergedComponents = new Map<
+    string,
+    { sourcePath: string; defaults: Record<string, string> }
+  >();
 
   for (const tplName of chain) {
     const entry = allTemplates.get(tplName);
@@ -51,14 +54,19 @@ export async function resolveTemplate(
     }),
   );
 
-  const leafEntry = allTemplates.get(name)!;
+  const leafEntry = allTemplates.get(name);
+  if (!leafEntry) throw new Error(`Template not found: ${name}`);
 
   return {
     name,
-    ...(leafEntry.config.description !== undefined ? { description: leafEntry.config.description } : {}),
+    ...(leafEntry.config.description !== undefined
+      ? { description: leafEntry.config.description }
+      : {}),
     origin: leafEntry.origin,
     extendsChain: chain,
-    ...(leafEntry.config.style_defaults !== undefined ? { style_defaults: leafEntry.config.style_defaults } : {}),
+    ...(leafEntry.config.style_defaults !== undefined
+      ? { style_defaults: leafEntry.config.style_defaults }
+      : {}),
     components,
   };
 }

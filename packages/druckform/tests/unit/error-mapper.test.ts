@@ -5,9 +5,7 @@ import type { SourceMap } from "../../src/sdk/types.js";
 describe("mapErrors", () => {
   it("extracts error line number and maps to component", () => {
     const log = "! Undefined control sequence at line 42\n";
-    const sourceMap: SourceMap = new Map([
-      [42, { componentName: "infobox", sourceLine: 12 }],
-    ]);
+    const sourceMap: SourceMap = new Map([[42, { componentName: "infobox", sourceLine: 12 }]]);
     const findings = mapErrors(log, sourceMap);
     expect(findings).toHaveLength(1);
     expect(findings[0]?.component).toBe("infobox");

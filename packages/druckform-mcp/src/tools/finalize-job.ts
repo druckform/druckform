@@ -1,16 +1,15 @@
-import { z } from "zod";
 import path from "node:path";
-import { hardenedUnzip } from "../unzip.js";
+import { z } from "zod";
 import { renderDocument } from "../cli-runner.js";
 import type { JobStore } from "../job-store.js";
+import { hardenedUnzip } from "../unzip.js";
 
 const schema = z.object({ job_id: z.string() });
 
 export function makeFinalizeJobTool(store: JobStore, baseUrl: string) {
   return {
     name: "finalize_job",
-    description:
-      "Unzip the uploaded bundle, run the render pipeline, and return the result.",
+    description: "Unzip the uploaded bundle, run the render pipeline, and return the result.",
     inputSchema: {
       type: "object",
       properties: { job_id: { type: "string" } },
@@ -29,12 +28,20 @@ export function makeFinalizeJobTool(store: JobStore, baseUrl: string) {
 
       if (!unzipResult.ok) {
         const errMsg = unzipResult.error;
-        store.update(job_id, { status: "error", ...(errMsg !== undefined && { errorSummary: errMsg }) });
+        store.update(job_id, {
+          status: "error",
+          ...(errMsg !== undefined && { errorSummary: errMsg }),
+        });
         return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify({ status: "error", error: { summary: unzipResult.error, findings: [] } }),
-          }],
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({
+                status: "error",
+                error: { summary: unzipResult.error, findings: [] },
+              }),
+            },
+          ],
         };
       }
 
@@ -48,24 +55,30 @@ export function makeFinalizeJobTool(store: JobStore, baseUrl: string) {
       if (renderResult.status === "ok") {
         store.update(job_id, { status: "done" });
         return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify({
-              status: "ok",
-              download_url: `${baseUrl}/download/${job.downloadToken}`,
-            }),
-          }],
-        };
-      } else {
-        const errSummary = renderResult.error?.summary;
-        store.update(job_id, { status: "error", ...(errSummary !== undefined && { errorSummary: errSummary }) });
-        return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify({ status: "error", error: renderResult.error }),
-          }],
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({
+                status: "ok",
+                download_url: `${baseUrl}/download/${job.downloadToken}`,
+              }),
+            },
+          ],
         };
       }
+      const errSummary = renderResult.error?.summary;
+      store.update(job_id, {
+        status: "error",
+        ...(errSummary !== undefined && { errorSummary: errSummary }),
+      });
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify({ status: "error", error: renderResult.error }),
+          },
+        ],
+      };
     },
   };
 }

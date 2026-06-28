@@ -1,31 +1,33 @@
-import path from "node:path";
-import os from "node:os";
 import fs from "node:fs";
-import type { RenderContract } from "../sdk/types.js";
-import { loadAllTemplates } from "../template/loader.js";
-import { resolveTemplate } from "../template/resolver.js";
-import { loadStyle } from "../style/validate.js";
-import { extractRequiredTokens, checkTokenCoverage } from "../style/tokens.js";
-import { parseDocument } from "../parse/parser.js";
+import os from "node:os";
+import path from "node:path";
 import { prerenderDiagrams } from "../diagram/pre-render.js";
 import { composeDocument } from "../latex/composer.js";
-import { runTectonic } from "../latex/tectonic.js";
 import { mapErrors, summarizeFinding } from "../latex/error-mapper.js";
+import { runTectonic } from "../latex/tectonic.js";
+import { parseDocument } from "../parse/parser.js";
+import type { RenderContract } from "../sdk/types.js";
+import { checkTokenCoverage, extractRequiredTokens } from "../style/tokens.js";
+import { loadStyle } from "../style/validate.js";
+import { loadAllTemplates } from "../template/loader.js";
+import { resolveTemplate } from "../template/resolver.js";
 
 // When compiled individually (source/tests): src/commands/ → ../../templates = druckform/templates
 // When bundled into dist/cli.js:              dist/        → ../templates   = druckform/templates
 const _t1 = path.resolve(new URL("../../templates", import.meta.url).pathname);
-const BUNDLED_TEMPLATES = fs.existsSync(_t1) ? _t1 : path.resolve(new URL("../templates", import.meta.url).pathname);
+const BUNDLED_TEMPLATES = fs.existsSync(_t1)
+  ? _t1
+  : path.resolve(new URL("../templates", import.meta.url).pathname);
 
 export async function renderCommand(
   template: string,
   stylePath: string,
   inFile: string,
-  assetsDir: string,
+  _assetsDir: string,
   outPdf: string,
   json: boolean,
 ): Promise<void> {
-  const all = loadAllTemplates(BUNDLED_TEMPLATES, process.env["DRUCKFORM_TEMPLATES_DIR"]);
+  const all = loadAllTemplates(BUNDLED_TEMPLATES, process.env.DRUCKFORM_TEMPLATES_DIR);
   const resolved = await resolveTemplate(template, all);
   const styleConfig = loadStyle(stylePath);
 
@@ -76,7 +78,7 @@ export async function renderCommand(
 
 function emitResult(contract: RenderContract, json: boolean): void {
   if (json) {
-    process.stdout.write(JSON.stringify(contract, null, 2) + "\n");
+    process.stdout.write(`${JSON.stringify(contract, null, 2)}\n`);
   } else {
     if (contract.status === "ok") {
       console.log(`✓ PDF written to ${contract.pdf}`);

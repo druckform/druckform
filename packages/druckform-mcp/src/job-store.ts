@@ -4,11 +4,11 @@ import path from "node:path";
 import type { Job } from "./types.js";
 
 function getJobsBase(): string {
-  return process.env["DRUCKFORM_JOBS_DIR"] ?? "/work/jobs";
+  return process.env.DRUCKFORM_JOBS_DIR ?? "/work/jobs";
 }
 
 function getMaxJobs(): number {
-  return parseInt(process.env["DRUCKFORM_MAX_JOBS"] ?? "10", 10);
+  return Number.parseInt(process.env.DRUCKFORM_MAX_JOBS ?? "10", 10);
 }
 
 const JOB_TTL_MS = 60 * 60 * 1000; // 1 hour

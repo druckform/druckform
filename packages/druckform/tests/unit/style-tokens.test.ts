@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { extractRequiredTokens, checkTokenCoverage } from "../../src/style/tokens.js";
-import type { ResolvedTemplate, StyleConfig, ComponentDef } from "../../src/sdk/types.js";
 import { z } from "zod";
+import type { ComponentDef, ResolvedTemplate, StyleConfig } from "../../src/sdk/types.js";
+import { checkTokenCoverage, extractRequiredTokens } from "../../src/style/tokens.js";
 
 // Minimal ComponentDef factory for test fixtures
 function makeComponentDef(requiredTokens: string[]): ComponentDef {
@@ -14,9 +14,7 @@ function makeComponentDef(requiredTokens: string[]): ComponentDef {
   };
 }
 
-function makeTemplate(
-  components: Record<string, string[]>,
-): ResolvedTemplate {
+function makeTemplate(components: Record<string, string[]>): ResolvedTemplate {
   return {
     name: "test-template",
     origin: "bundled",

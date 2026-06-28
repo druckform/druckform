@@ -16,9 +16,7 @@ export const meta = {
 };
 
 export const render: Component<typeof schema> = (params, children, ctx: RenderCtx) => {
-  const color = params.variant === "warn"
-    ? ctx.token("warning")
-    : ctx.token("accent");
+  const color = params.variant === "warn" ? ctx.token("warning") : ctx.token("accent");
   return Tex`\begin{callout}{${raw(color)}}{${params.title}}
 ${raw(children)}
 \end{callout}`;

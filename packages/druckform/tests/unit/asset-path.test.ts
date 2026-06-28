@@ -6,9 +6,7 @@ const ROOT = "/work/assets";
 
 describe("resolveAssetPath", () => {
   it("returns resolved path for a normal ref", () => {
-    expect(resolveAssetPath(ROOT, "images/photo.png")).toBe(
-      path.resolve(ROOT, "images/photo.png")
-    );
+    expect(resolveAssetPath(ROOT, "images/photo.png")).toBe(path.resolve(ROOT, "images/photo.png"));
   });
 
   it("throws on path traversal with ../", () => {
@@ -24,8 +22,6 @@ describe("resolveAssetPath", () => {
   });
 
   it("allows nested paths that stay inside root", () => {
-    expect(resolveAssetPath(ROOT, "a/b/c/file.svg")).toBe(
-      path.resolve(ROOT, "a/b/c/file.svg")
-    );
+    expect(resolveAssetPath(ROOT, "a/b/c/file.svg")).toBe(path.resolve(ROOT, "a/b/c/file.svg"));
   });
 });

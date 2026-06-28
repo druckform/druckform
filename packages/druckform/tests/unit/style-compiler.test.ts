@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { compileStyle, tokenMacro } from "../../src/style/compiler.js";
 import type { StyleConfig } from "../../src/sdk/types.js";
+import { compileStyle, tokenMacro } from "../../src/style/compiler.js";
 
 const minimalConfig: StyleConfig = {
   $schema: "style-v1",

@@ -14,7 +14,10 @@ const STYLES = path.resolve(import.meta.dirname, "../../styles/example/style.yam
 describe("render integration", () => {
   it("produces ok contract for a valid document", async () => {
     const writes: string[] = [];
-    vi.spyOn(process.stdout, "write").mockImplementation((s) => { writes.push(String(s)); return true; });
+    vi.spyOn(process.stdout, "write").mockImplementation((s) => {
+      writes.push(String(s));
+      return true;
+    });
 
     const outPdf = path.join(import.meta.dirname, "../../dist/test-output.pdf");
 
@@ -42,9 +45,15 @@ describe("render integration", () => {
     fs.writeFileSync(emptyStyle, "$schema: style-v1\ntokens: {}", "utf8");
 
     const writes: string[] = [];
-    vi.spyOn(process.stdout, "write").mockImplementation((s) => { writes.push(String(s)); return true; });
+    vi.spyOn(process.stdout, "write").mockImplementation((s) => {
+      writes.push(String(s));
+      return true;
+    });
     const exits: number[] = [];
-    vi.spyOn(process, "exit").mockImplementation((n) => { exits.push(n ?? 0); throw new Error("exit"); });
+    vi.spyOn(process, "exit").mockImplementation((n) => {
+      exits.push(n ?? 0);
+      throw new Error("exit");
+    });
 
     await expect(
       renderCommand(

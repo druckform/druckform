@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { generateToken } from "../url-tokens.js";
 import type { JobStore } from "../job-store.js";
+import { generateToken } from "../url-tokens.js";
 
 const schema = z.object({ template: z.string(), style: z.string() });
 

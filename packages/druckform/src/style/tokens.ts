@@ -36,9 +36,10 @@ export function checkTokenCoverage(
   for (const token of required) {
     if (!available.has(token)) {
       // Find which component needs this token
-      const needingComponent = Object.entries(template.components).find(([, entry]) =>
-        entry.def.requiredTokens.has(token),
-      )?.[0] ?? "unknown";
+      const needingComponent =
+        Object.entries(template.components).find(([, entry]) =>
+          entry.def.requiredTokens.has(token),
+        )?.[0] ?? "unknown";
 
       findings.push({
         severity: "error",

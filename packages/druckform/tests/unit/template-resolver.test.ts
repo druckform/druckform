@@ -1,6 +1,6 @@
-import path from "node:path";
-import os from "node:os";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadAllTemplates } from "../../src/template/loader.js";
 import { resolveTemplate } from "../../src/template/resolver.js";
@@ -10,14 +10,19 @@ function makeTempTemplates(): string {
   // base template with infobox
   const baseDir = path.join(dir, "base");
   fs.mkdirSync(path.join(baseDir, "components"), { recursive: true });
-  fs.writeFileSync(path.join(baseDir, "template.yaml"), `
+  fs.writeFileSync(
+    path.join(baseDir, "template.yaml"),
+    `
 name: base
 description: Base template
 components:
   infobox:
     source: components/infobox.component.yaml
-`);
-  fs.writeFileSync(path.join(baseDir, "components", "infobox.component.yaml"), `
+`,
+  );
+  fs.writeFileSync(
+    path.join(baseDir, "components", "infobox.component.yaml"),
+    `
 name: infobox
 description: An info box
 params:
@@ -29,11 +34,14 @@ emits: |
   \\begin{infobox}{{{accent}}}{{{title}}}
   {{children}}
   \\end{infobox}
-`);
+`,
+  );
   // report template that extends base with a partial override
   const reportDir = path.join(dir, "report");
   fs.mkdirSync(reportDir, { recursive: true });
-  fs.writeFileSync(path.join(reportDir, "template.yaml"), `
+  fs.writeFileSync(
+    path.join(reportDir, "template.yaml"),
+    `
 name: report
 extends: base
 components:
@@ -41,7 +49,8 @@ components:
     extends: base.infobox
     defaults:
       accent: warningColor
-`);
+`,
+  );
   return dir;
 }
 
@@ -67,7 +76,7 @@ describe("resolveTemplate", () => {
     const dir = makeTempTemplates();
     const all = loadAllTemplates(dir);
     const resolved = await resolveTemplate("report", all);
-    expect(resolved.components["infobox"]?.defaults["accent"]).toBe("warningColor");
+    expect(resolved.components.infobox?.defaults.accent).toBe("warningColor");
   });
 
   it("throws on circular inheritance", async () => {

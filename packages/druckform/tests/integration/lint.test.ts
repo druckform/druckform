@@ -10,16 +10,14 @@ const FIXTURES = path.resolve(import.meta.dirname, "../fixtures");
 describe("lint integration", () => {
   it("reports ok for a valid document", async () => {
     const writes: string[] = [];
-    vi.spyOn(process.stdout, "write").mockImplementation((s) => { writes.push(String(s)); return true; });
+    vi.spyOn(process.stdout, "write").mockImplementation((s) => {
+      writes.push(String(s));
+      return true;
+    });
 
-    delete process.env["DRUCKFORM_TEMPLATES_DIR"];
+    process.env.DRUCKFORM_TEMPLATES_DIR = undefined;
     // Override bundled templates path via env for test isolation
-    await lintCommand(
-      "base",
-      path.join(FIXTURES, "documents/valid.md"),
-      undefined,
-      true,
-    );
+    await lintCommand("base", path.join(FIXTURES, "documents/valid.md"), undefined, true);
 
     const out = JSON.parse(writes.join(""));
     expect(out.schemaVersion).toBe("1");
@@ -30,9 +28,15 @@ describe("lint integration", () => {
 
   it("reports error for missing required param", async () => {
     const writes: string[] = [];
-    vi.spyOn(process.stdout, "write").mockImplementation((s) => { writes.push(String(s)); return true; });
+    vi.spyOn(process.stdout, "write").mockImplementation((s) => {
+      writes.push(String(s));
+      return true;
+    });
     const exits: number[] = [];
-    vi.spyOn(process, "exit").mockImplementation((n) => { exits.push(n ?? 0); throw new Error("exit"); });
+    vi.spyOn(process, "exit").mockImplementation((n) => {
+      exits.push(n ?? 0);
+      throw new Error("exit");
+    });
 
     await expect(
       lintCommand(

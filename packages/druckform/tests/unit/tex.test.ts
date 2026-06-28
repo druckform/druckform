@@ -4,7 +4,7 @@ import { Tex, escapeTeX, raw } from "../../src/sdk/tex.js";
 describe("escapeTeX", () => {
   it("escapes all 10 TeX special characters", () => {
     expect(escapeTeX("& % _ # $ { } ~ ^ \\")).toBe(
-      "\\& \\% \\_ \\# \\$ \\{ \\} \\textasciitilde{} \\textasciicircum{} \\textbackslash{}"
+      "\\& \\% \\_ \\# \\$ \\{ \\} \\textasciitilde{} \\textasciicircum{} \\textbackslash{}",
     );
   });
 

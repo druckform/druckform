@@ -1,7 +1,7 @@
 import path from "node:path";
+import type { ComponentDef } from "../sdk/types.js";
 import { loadDeclarativeComponent } from "./declarative.js";
 import { loadTypeScriptComponent } from "./typescript.js";
-import type { ComponentDef } from "../sdk/types.js";
 
 export async function loadComponent(
   sourcePath: string,

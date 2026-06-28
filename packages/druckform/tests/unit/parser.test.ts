@@ -15,12 +15,12 @@ describe("parseMarkdownString", () => {
     expect(node?.type).toBe("component");
     if (node?.type === "component") {
       expect(node.block.name).toBe("infobox");
-      expect(node.block.params["title"]).toBe("Note");
+      expect(node.block.params.title).toBe("Note");
     }
   });
 
   it("parses text before and after a component", () => {
-    const doc = parseMarkdownString("Before\n::: box title=\"A\"\nInside\n:::\nAfter");
+    const doc = parseMarkdownString('Before\n::: box title="A"\nInside\n:::\nAfter');
     expect(doc.nodes).toHaveLength(3);
     expect(doc.nodes[0]?.type).toBe("text");
     expect(doc.nodes[1]?.type).toBe("component");
@@ -28,9 +28,7 @@ describe("parseMarkdownString", () => {
   });
 
   it("parses nested components", () => {
-    const doc = parseMarkdownString(
-      '::: outer title="O"\n::: inner title="I"\nText\n:::\n:::'
-    );
+    const doc = parseMarkdownString('::: outer title="O"\n::: inner title="I"\nText\n:::\n:::');
     expect(doc.nodes).toHaveLength(1);
     const outer = doc.nodes[0];
     if (outer?.type === "component") {

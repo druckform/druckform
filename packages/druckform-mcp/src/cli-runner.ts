@@ -1,14 +1,14 @@
 import { spawnSync } from "node:child_process";
 import type {
-  TemplatesContract,
   ComponentsContract,
   LintContract,
   RenderContract,
+  TemplatesContract,
 } from "druckform";
 
 function run(args: string[]): { ok: boolean; stdout: string; stderr: string } {
   // Read env var at call time so tests can set it in beforeAll
-  const binRaw = process.env["DRUCK_BIN"] ?? "druck";
+  const binRaw = process.env.DRUCK_BIN ?? "druck";
   const binParts = binRaw.split(" ");
   const cmd = binParts[0] ?? "druck";
   const cmdArgs = binParts.slice(1);
@@ -43,12 +43,10 @@ export function listComponents(template: string): ComponentsContract {
   return JSON.parse(runOrThrow(["components", "--template", template])) as ComponentsContract;
 }
 
-export function lintDocument(
-  template: string,
-  inFile: string,
-  stylePath: string,
-): LintContract {
-  return JSON.parse(runOrThrow(["lint", "--template", template, "--in", inFile, "--style", stylePath])) as LintContract;
+export function lintDocument(template: string, inFile: string, stylePath: string): LintContract {
+  return JSON.parse(
+    runOrThrow(["lint", "--template", template, "--in", inFile, "--style", stylePath]),
+  ) as LintContract;
 }
 
 export function renderDocument(
@@ -58,12 +56,19 @@ export function renderDocument(
   assetsDir: string,
   outPdf: string,
 ): RenderContract {
-  return JSON.parse(runOrThrow([
-    "render",
-    "--template", template,
-    "--style", stylePath,
-    "--in", inFile,
-    "--assets", assetsDir,
-    "--out", outPdf,
-  ])) as RenderContract;
+  return JSON.parse(
+    runOrThrow([
+      "render",
+      "--template",
+      template,
+      "--style",
+      stylePath,
+      "--in",
+      inFile,
+      "--assets",
+      assetsDir,
+      "--out",
+      outPdf,
+    ]),
+  ) as RenderContract;
 }

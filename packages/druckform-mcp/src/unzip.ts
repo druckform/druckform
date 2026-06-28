@@ -29,7 +29,11 @@ export function hardenedUnzip(zipPath: string, destDir: string): Promise<UnzipRe
 
         if (entryCount > MAX_ENTRY_COUNT) {
           zipfile.close();
-          return resolve({ ok: false, error: `Archive exceeds maximum entry count (${MAX_ENTRY_COUNT})`, files });
+          return resolve({
+            ok: false,
+            error: `Archive exceeds maximum entry count (${MAX_ENTRY_COUNT})`,
+            files,
+          });
         }
 
         // Zip-slip check: resolve and verify strictly inside destDir
@@ -40,7 +44,10 @@ export function hardenedUnzip(zipPath: string, destDir: string): Promise<UnzipRe
         }
 
         const fullPath = path.resolve(destDir, entryPath);
-        if (!fullPath.startsWith(path.resolve(destDir) + path.sep) && fullPath !== path.resolve(destDir)) {
+        if (
+          !fullPath.startsWith(path.resolve(destDir) + path.sep) &&
+          fullPath !== path.resolve(destDir)
+        ) {
           zipfile.close();
           return resolve({ ok: false, error: `Zip-slip detected: ${entryPath}`, files });
         }
@@ -69,7 +76,11 @@ export function hardenedUnzip(zipPath: string, destDir: string): Promise<UnzipRe
               readStream.destroy();
               writeStream.destroy();
               zipfile.close();
-              resolve({ ok: false, error: `Archive exceeds maximum uncompressed size (${MAX_UNCOMPRESSED_BYTES} bytes)`, files });
+              resolve({
+                ok: false,
+                error: `Archive exceeds maximum uncompressed size (${MAX_UNCOMPRESSED_BYTES} bytes)`,
+                files,
+              });
             }
           });
 
@@ -92,9 +103,10 @@ export function hardenedUnzip(zipPath: string, destDir: string): Promise<UnzipRe
       zipfile.on("end", () => resolve({ ok: true, files }));
       zipfile.on("error", (e) => {
         const msg = e.message;
-        const error = msg.includes("relative path") || msg.includes("absolute path")
-          ? `Zip-slip detected: ${msg}`
-          : msg;
+        const error =
+          msg.includes("relative path") || msg.includes("absolute path")
+            ? `Zip-slip detected: ${msg}`
+            : msg;
         resolve({ ok: false, error, files });
       });
     });

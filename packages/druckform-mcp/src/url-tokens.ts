@@ -20,11 +20,7 @@ export function generateToken(jobId: string, kind: "upload" | "download"): strin
   return token;
 }
 
-export interface TokenValidation {
-  valid: boolean;
-  jobId?: string;
-  reason?: string;
-}
+export type TokenValidation = { valid: true; jobId: string } | { valid: false; reason: string };
 
 export function validateToken(token: string, expectedKind: "upload" | "download"): TokenValidation {
   const entry = tokens.get(token);

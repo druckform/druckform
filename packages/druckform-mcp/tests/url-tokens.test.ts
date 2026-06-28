@@ -1,5 +1,10 @@
-import { describe, expect, it, beforeEach } from "vitest";
-import { generateToken, validateToken, consumeToken, clearTokensForTest } from "../src/url-tokens.js";
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+  clearTokensForTest,
+  consumeToken,
+  generateToken,
+  validateToken,
+} from "../src/url-tokens.js";
 
 describe("url-tokens", () => {
   beforeEach(() => {

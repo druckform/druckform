@@ -1,16 +1,16 @@
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { JobStore } from "../src/job-store.js";
 
 beforeEach(() => {
-  process.env["DRUCKFORM_JOBS_DIR"] = path.join(os.tmpdir(), `jobs-${Date.now()}`);
-  process.env["DRUCKFORM_MAX_JOBS"] = "3";
+  process.env.DRUCKFORM_JOBS_DIR = path.join(os.tmpdir(), `jobs-${Date.now()}`);
+  process.env.DRUCKFORM_MAX_JOBS = "3";
 });
 
 afterEach(() => {
-  delete process.env["DRUCKFORM_JOBS_DIR"];
-  delete process.env["DRUCKFORM_MAX_JOBS"];
+  process.env.DRUCKFORM_JOBS_DIR = undefined;
+  process.env.DRUCKFORM_MAX_JOBS = undefined;
 });
 
 describe("JobStore", () => {

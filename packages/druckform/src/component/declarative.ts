@@ -46,8 +46,9 @@ export function loadDeclarativeComponent(yamlPath: string): ComponentDef {
   }
 
   const schema = z.object(shape);
-  const jsonSchema = zodToJsonSchema(schema, { name: spec.name }).definitions?.[spec.name]
-    ?? zodToJsonSchema(schema);
+  const jsonSchema =
+    zodToJsonSchema(schema, { name: spec.name }).definitions?.[spec.name] ??
+    zodToJsonSchema(schema);
   const acceptsChildren = spec.slots?.children === true;
 
   // Compile the emits template into a render function

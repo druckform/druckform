@@ -7,10 +7,9 @@ const ATTR_RE = /(\w+)="([^"]*)"/g;
 
 function parseAttrs(attrStr: string): Record<string, string> {
   const attrs: Record<string, string> = {};
-  let match: RegExpExecArray | null;
   const re = new RegExp(ATTR_RE.source, "g");
-  while ((match = re.exec(attrStr)) !== null) {
-    attrs[match[1]!] = match[2]!;
+  for (let match = re.exec(attrStr); match !== null; match = re.exec(attrStr)) {
+    attrs[match[1] ?? ""] = match[2] ?? "";
   }
   return attrs;
 }
@@ -44,7 +43,7 @@ function parseLines(lines: string[], startLine: number): [ASTNode[], number] {
   };
 
   while (i < lines.length) {
-    const line = lines[i]!;
+    const line = lines[i] ?? "";
     const openMatch = OPEN_RE.exec(line);
     const closeMatch = CLOSE_RE.test(line) && !openMatch;
 
@@ -55,7 +54,7 @@ function parseLines(lines: string[], startLine: number): [ASTNode[], number] {
 
     if (openMatch) {
       flushText();
-      const name = openMatch[1]!;
+      const name = openMatch[1] ?? "";
       const attrStr = openMatch[2] ?? "";
       const params = parseAttrs(attrStr);
       const sourceLine = i + 1;

@@ -18,10 +18,10 @@ export function mdToLatex(md: string): string {
         out.push("\\end{itemize}");
         inList = false;
       }
-      const level = headingMatch[1]!.length;
+      const level = headingMatch[1]?.length ?? 1;
       const cmds = ["section", "subsection", "subsubsection", "paragraph"];
       const cmd = cmds[level - 1] ?? "paragraph";
-      out.push(`\\${cmd}{${inlineMarkdown(headingMatch[2]!)}}`);
+      out.push(`\\${cmd}{${inlineMarkdown(headingMatch[2] ?? "")}}`);
       continue;
     }
 
@@ -32,7 +32,7 @@ export function mdToLatex(md: string): string {
         out.push("\\begin{itemize}");
         inList = true;
       }
-      out.push(`  \\item ${inlineMarkdown(listMatch[1]!)}`);
+      out.push(`  \\item ${inlineMarkdown(listMatch[1] ?? "")}`);
       continue;
     }
 
@@ -62,22 +62,19 @@ function inlineMarkdown(text: string): string {
   const parts: string[] = [];
   const pattern = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`/g;
   let lastIndex = 0;
-  let match: RegExpExecArray | null;
 
-  while ((match = pattern.exec(text)) !== null) {
-    // Escape plain text before this match
+  for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
     if (match.index > lastIndex) {
       parts.push(escapeTeX(text.slice(lastIndex, match.index)));
     }
 
-    const full = match[0]!;
+    const full = match[0] ?? "";
     if (full.startsWith("**")) {
-      parts.push(`\\textbf{${escapeTeX(match[1]!)}}`);
+      parts.push(`\\textbf{${escapeTeX(match[1] ?? "")}}`);
     } else if (full.startsWith("*")) {
-      parts.push(`\\textit{${escapeTeX(match[2]!)}}`);
+      parts.push(`\\textit{${escapeTeX(match[2] ?? "")}}`);
     } else {
-      // backtick code span
-      parts.push(`\\texttt{${escapeTeX(match[3]!)}}`);
+      parts.push(`\\texttt{${escapeTeX(match[3] ?? "")}}`);
     }
 
     lastIndex = pattern.lastIndex;

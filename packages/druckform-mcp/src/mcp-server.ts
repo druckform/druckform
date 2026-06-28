@@ -2,11 +2,11 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import type { JobStore } from "./job-store.js";
-import { listTemplatesTool } from "./tools/list-templates.js";
-import { listComponentsTool } from "./tools/list-components.js";
-import { makeValidateDocumentTool } from "./tools/validate-document.js";
-import { makeRenderDocumentTool } from "./tools/render-document.js";
 import { makeFinalizeJobTool } from "./tools/finalize-job.js";
+import { listComponentsTool } from "./tools/list-components.js";
+import { listTemplatesTool } from "./tools/list-templates.js";
+import { makeRenderDocumentTool } from "./tools/render-document.js";
+import { makeValidateDocumentTool } from "./tools/validate-document.js";
 
 export async function startMcpServer(store: JobStore, baseUrl: string): Promise<void> {
   const server = new McpServer({
@@ -15,10 +15,8 @@ export async function startMcpServer(store: JobStore, baseUrl: string): Promise<
   });
 
   // list_templates: no args
-  server.tool(
-    listTemplatesTool.name,
-    listTemplatesTool.description,
-    async () => listTemplatesTool.handler(),
+  server.tool(listTemplatesTool.name, listTemplatesTool.description, async () =>
+    listTemplatesTool.handler(),
   );
 
   // list_components: { template: string }
@@ -31,11 +29,8 @@ export async function startMcpServer(store: JobStore, baseUrl: string): Promise<
 
   // validate_document: { job_id: string }
   const validateTool = makeValidateDocumentTool(store);
-  server.tool(
-    validateTool.name,
-    validateTool.description,
-    { job_id: z.string() },
-    async (args) => validateTool.handler(args),
+  server.tool(validateTool.name, validateTool.description, { job_id: z.string() }, async (args) =>
+    validateTool.handler(args),
   );
 
   // render_document: { template: string, style: string }
@@ -49,11 +44,8 @@ export async function startMcpServer(store: JobStore, baseUrl: string): Promise<
 
   // finalize_job: { job_id: string }
   const finalizeTool = makeFinalizeJobTool(store, baseUrl);
-  server.tool(
-    finalizeTool.name,
-    finalizeTool.description,
-    { job_id: z.string() },
-    async (args) => finalizeTool.handler(args),
+  server.tool(finalizeTool.name, finalizeTool.description, { job_id: z.string() }, async (args) =>
+    finalizeTool.handler(args),
   );
 
   const transport = new StdioServerTransport();

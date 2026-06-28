@@ -1,15 +1,15 @@
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import fs from "node:fs";
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { JobStore } from "../src/job-store.js";
-import { generateToken, clearTokensForTest } from "../src/url-tokens.js";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createHttpServer, startHttpServer } from "../src/http-server.js";
+import { JobStore } from "../src/job-store.js";
+import { clearTokensForTest, generateToken } from "../src/url-tokens.js";
 
 let store: JobStore;
 
 beforeEach(() => {
-  process.env["DRUCKFORM_JOBS_DIR"] = fs.mkdtempSync(path.join(os.tmpdir(), "http-test-"));
+  process.env.DRUCKFORM_JOBS_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "http-test-"));
   store = new JobStore();
 });
 
@@ -63,8 +63,8 @@ describe("HTTP server", () => {
   });
 
   it("binds to DRUCKFORM_HTTP_BIND address when set", async () => {
-    const savedEnv = process.env["DRUCKFORM_HTTP_BIND"];
-    process.env["DRUCKFORM_HTTP_BIND"] = "0.0.0.0";
+    const savedEnv = process.env.DRUCKFORM_HTTP_BIND;
+    process.env.DRUCKFORM_HTTP_BIND = "0.0.0.0";
     const isolatedStore = new JobStore();
     let server: { url: string; close: () => Promise<void>; boundHost: string } | undefined;
     try {
@@ -75,9 +75,9 @@ describe("HTTP server", () => {
       await server?.close();
       await isolatedStore.destroy();
       if (savedEnv === undefined) {
-        delete process.env["DRUCKFORM_HTTP_BIND"];
+        process.env.DRUCKFORM_HTTP_BIND = undefined;
       } else {
-        process.env["DRUCKFORM_HTTP_BIND"] = savedEnv;
+        process.env.DRUCKFORM_HTTP_BIND = savedEnv;
       }
     }
   });

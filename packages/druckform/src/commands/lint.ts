@@ -1,16 +1,18 @@
-import type { LintContract, ASTNode, Finding, ResolvedTemplate } from "../sdk/types.js";
+import fs from "node:fs";
+import path from "node:path";
+import { parseDocument } from "../parse/parser.js";
+import type { ASTNode, Finding, LintContract, ResolvedTemplate } from "../sdk/types.js";
+import { checkTokenCoverage, extractRequiredTokens } from "../style/tokens.js";
+import { loadStyle } from "../style/validate.js";
 import { loadAllTemplates } from "../template/loader.js";
 import { resolveTemplate } from "../template/resolver.js";
-import { loadStyle } from "../style/validate.js";
-import { extractRequiredTokens, checkTokenCoverage } from "../style/tokens.js";
-import { parseDocument } from "../parse/parser.js";
-import path from "node:path";
-import fs from "node:fs";
 
 // When compiled individually (source/tests): src/commands/ → ../../templates = druckform/templates
 // When bundled into dist/cli.js:              dist/        → ../templates   = druckform/templates
 const _t1 = path.resolve(new URL("../../templates", import.meta.url).pathname);
-const BUNDLED_TEMPLATES = fs.existsSync(_t1) ? _t1 : path.resolve(new URL("../templates", import.meta.url).pathname);
+const BUNDLED_TEMPLATES = fs.existsSync(_t1)
+  ? _t1
+  : path.resolve(new URL("../templates", import.meta.url).pathname);
 
 // Recursive AST walker for linting — visits all levels of nesting
 function lintNodes(nodes: ASTNode[], resolved: ResolvedTemplate, findings: Finding[]): void {
@@ -52,7 +54,7 @@ export async function lintCommand(
   stylePath: string | undefined,
   json: boolean,
 ): Promise<void> {
-  const all = loadAllTemplates(BUNDLED_TEMPLATES, process.env["DRUCKFORM_TEMPLATES_DIR"]);
+  const all = loadAllTemplates(BUNDLED_TEMPLATES, process.env.DRUCKFORM_TEMPLATES_DIR);
   const resolved = await resolveTemplate(template, all);
   const doc = parseDocument(inFile);
   const findings: Finding[] = [];
@@ -74,7 +76,7 @@ export async function lintCommand(
   };
 
   if (json) {
-    process.stdout.write(JSON.stringify(contract, null, 2) + "\n");
+    process.stdout.write(`${JSON.stringify(contract, null, 2)}\n`);
   } else {
     if (contract.ok) {
       console.log("✓ No issues found.");

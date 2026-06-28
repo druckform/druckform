@@ -47,9 +47,9 @@ export interface RenderContract {
 // ── Style ───────────────────────────────────────────────────────────────────
 
 export interface StyleTokens {
-  colors: Record<string, string>;     // name → #hex
+  colors: Record<string, string>; // name → #hex
   fonts: { main?: string; mono?: string };
-  spacing: Record<string, string>;    // name → css-length
+  spacing: Record<string, string>; // name → css-length
 }
 
 export interface StyleConfig {
@@ -104,8 +104,8 @@ export interface ComponentDef {
 // ── Templates ───────────────────────────────────────────────────────────────
 
 export interface ComponentOverrideSpec {
-  source?: string;       // path to .ts or .component.yaml (relative to template dir)
-  extends?: string;      // "parentTemplate.componentName" — type-a partial override only
+  source?: string; // path to .ts or .component.yaml (relative to template dir)
+  extends?: string; // "parentTemplate.componentName" — type-a partial override only
   defaults?: Record<string, string>;
 }
 

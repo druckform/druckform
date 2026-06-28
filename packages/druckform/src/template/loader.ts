@@ -9,10 +9,7 @@ export interface TemplateEntry {
   origin: "bundled" | "user";
 }
 
-export function loadAllTemplates(
-  bundledDir: string,
-  userDir?: string,
-): Map<string, TemplateEntry> {
+export function loadAllTemplates(bundledDir: string, userDir?: string): Map<string, TemplateEntry> {
   const templates = new Map<string, TemplateEntry>();
 
   for (const origin of ["bundled", "user"] as const) {

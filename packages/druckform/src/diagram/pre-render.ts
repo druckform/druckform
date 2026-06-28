@@ -21,15 +21,15 @@ export async function prerenderDiagrams(
 
   function processText(text: string) {
     for (const match of text.matchAll(new RegExp(MERMAID_FENCE.source, "gm"))) {
-      const fence = match[0]!;
-      const content = match[1]!;
+      const fence = match[0] ?? "";
+      const content = match[1] ?? "";
       if (!results.has(fence)) {
         results.set(fence, renderMermaid(content, styleConfig, workDir, mermaidIdx++));
       }
     }
     for (const match of text.matchAll(new RegExp(PLANTUML_FENCE.source, "gm"))) {
-      const fence = match[0]!;
-      const content = match[1]!;
+      const fence = match[0] ?? "";
+      const content = match[1] ?? "";
       if (!results.has(fence)) {
         results.set(fence, renderPlantUML(content, styleConfig, workDir, plantumlIdx++, styleDir));
       }
