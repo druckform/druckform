@@ -1,0 +1,25 @@
+{
+  "$schema": "https://code.claude.com/schemas/marketplace.json",
+  "name": "druckform",
+  "description": "Render AI-authored Markdown into styled PDFs. Provides the druckform MCP server and a reference skill for document authoring.",
+  "owner": {
+    "name": "Torben Hartmann",
+    "email": "torben.hartmann@googlemail.com"
+  },
+  "metadata": {
+    "pluginRoot": "./claude-plugin"
+  },
+  "plugins": [
+    {
+      "name": "druckform",
+      "source": "./claude-plugin",
+      "displayName": "Druckform",
+      "description": "MCP server + reference skill for rendering Markdown to PDF via LaTeX.",
+      "homepage": "https://github.com/YOUR_GH_USERNAME/druckform",
+      "repository": "https://github.com/YOUR_GH_USERNAME/druckform",
+      "license": "MIT",
+      "keywords": ["pdf", "markdown", "latex", "mcp", "document"],
+      "category": "productivity"
+    }
+  ]
+}
