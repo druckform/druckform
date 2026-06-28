@@ -9,7 +9,7 @@
         "run", "--rm", "-i",
         "-p", "7331:7331",
         "-e", "DRUCKFORM_HTTP_BIND=0.0.0.0",
-        "ghcr.io/YOUR_GH_USERNAME/druckform:latest",
+        "ghcr.io/corwynt/druckform:latest",
         "mcp"
       ]
     }

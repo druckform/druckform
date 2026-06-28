@@ -11,7 +11,7 @@ Convert AI-authored Markdown into styled PDFs via LaTeX. Two packages in a TypeS
 # Render a document
 docker run --rm \
   -v "$(pwd):/work" \
-  ghcr.io/YOUR_GH_USERNAME/druckform:latest \
+  ghcr.io/corwynt/druckform:latest \
   render --template base --style /work/style.yaml --in /work/document.md --out /work/out.pdf
 ```
 
@@ -24,7 +24,7 @@ See [docs/authoring.md](docs/authoring.md) for the document format and available
 Install the druckform Claude Code plugin:
 
 ```
-/plugin marketplace add YOUR_GH_USERNAME/druckform
+/plugin marketplace add corwynt/druckform
 /plugin install druckform@druckform
 ```
 

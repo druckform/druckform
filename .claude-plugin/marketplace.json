@@ -15,8 +15,8 @@
       "source": "./claude-plugin",
       "displayName": "Druckform",
       "description": "MCP server + reference skill for rendering Markdown to PDF via LaTeX.",
-      "homepage": "https://github.com/YOUR_GH_USERNAME/druckform",
-      "repository": "https://github.com/YOUR_GH_USERNAME/druckform",
+      "homepage": "https://github.com/corwynt/druckform",
+      "repository": "https://github.com/corwynt/druckform",
       "license": "MIT",
       "keywords": ["pdf", "markdown", "latex", "mcp", "document"],
       "category": "productivity"
