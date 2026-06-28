@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { JobStore } from "../src/job-store.js";
 import { generateToken, clearTokensForTest } from "../src/url-tokens.js";
-import { createHttpServer } from "../src/http-server.js";
+import { createHttpServer, startHttpServer } from "../src/http-server.js";
 
 let store: JobStore;
 
@@ -60,5 +60,14 @@ describe("HTTP server", () => {
       url: `/download/${downloadToken}`,
     });
     expect(res.statusCode).toBe(409);
+  });
+
+  it("binds to DRUCKFORM_HTTP_BIND address when set", async () => {
+    const savedEnv = process.env["DRUCKFORM_HTTP_BIND"];
+    process.env["DRUCKFORM_HTTP_BIND"] = "127.0.0.1";
+    const url = await startHttpServer(store, 7399);
+    expect(url).toBe("http://127.0.0.1:7399");
+    await store.destroy();
+    process.env["DRUCKFORM_HTTP_BIND"] = savedEnv;
   });
 });
