@@ -34,6 +34,14 @@ export function loadAllTemplates(bundledDir: string, userDir?: string): Map<stri
 
       const raw = fs.readFileSync(configPath, "utf8");
       const config = yaml.load(raw) as TemplateConfig;
+      for (const [compName, spec] of Object.entries(config.components ?? {})) {
+        if (compName.startsWith("block:") && spec === null) {
+          throw new Error(
+            `Template '${config.name}' cannot remove built-in block component '${compName}' ` +
+              `(set to null). 'block:' components are required by the Markdown renderer.`,
+          );
+        }
+      }
       if (origin === "user") {
         for (const compName of Object.keys(config.components ?? {})) {
           if (compName.startsWith("block:") && !KNOWN_BLOCK_COMPONENTS.has(compName)) {
