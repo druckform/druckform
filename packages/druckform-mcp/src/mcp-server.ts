@@ -2,9 +2,12 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import type { JobStore } from "./job-store.js";
+import { makeDeleteJobTool } from "./tools/delete-job.js";
 import { makeFinalizeJobTool } from "./tools/finalize-job.js";
 import { listComponentsTool } from "./tools/list-components.js";
+import { makeListJobFilesTool } from "./tools/list-job-files.js";
 import { listTemplatesTool } from "./tools/list-templates.js";
+import { makeRefreshJobTool } from "./tools/refresh-job.js";
 import { makeRenderDocumentTool } from "./tools/render-document.js";
 import { makeRenderMarkdownTool } from "./tools/render-markdown.js";
 import { makeValidateDocumentTool } from "./tools/validate-document.js";
@@ -56,6 +59,24 @@ export async function startMcpServer(store: JobStore, baseUrl: string): Promise<
   const finalizeTool = makeFinalizeJobTool(store, baseUrl);
   server.tool(finalizeTool.name, finalizeTool.description, { job_id: z.string() }, async (args) =>
     finalizeTool.handler(args),
+  );
+
+  // list_job_files: { job_id: string }
+  const listFilesTool = makeListJobFilesTool(store);
+  server.tool(listFilesTool.name, listFilesTool.description, { job_id: z.string() }, async (args) =>
+    listFilesTool.handler(args),
+  );
+
+  // refresh_job: { job_id: string }
+  const refreshTool = makeRefreshJobTool(store, baseUrl);
+  server.tool(refreshTool.name, refreshTool.description, { job_id: z.string() }, async (args) =>
+    refreshTool.handler(args),
+  );
+
+  // delete_job: { job_id: string }
+  const deleteTool = makeDeleteJobTool(store);
+  server.tool(deleteTool.name, deleteTool.description, { job_id: z.string() }, async (args) =>
+    deleteTool.handler(args),
   );
 
   const transport = new StdioServerTransport();
