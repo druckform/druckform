@@ -8,6 +8,8 @@
 
 **Tech Stack:** TypeScript (ESM), `tsx`, `zod`, `vitest`, `tsup`, pnpm workspace.
 
+> **⚠️ DESCOPED (2026-06-29).** The `tsx` loader swap (Tasks 1 & 3) was attempted and **reverted**: `tsx`'s `tsImport` cannot self-bootstrap inside the tsup-bundled `dist/cli.js` on Node 22 (its `module.register()` worker-thread hook activates after Node's native ESM parser already rejects the `.ts` syntax) — tests pass, but production `druck render` breaks. The two motivations no longer justified the swap: the temp-file **race was already fixed** (extensibility Phase 1, pid+counter filename), and **coverage** is handled by the existing `templates/**` exclude (components are tested via output assertions). **What shipped from this phase: only Task 2 — the `renderComponent` test helper** (the low-risk, high-value piece that unblocks Phases 2–5). The esbuild loader is retained. To revisit the swap, bump the runtime to Node ≥24 (`module.registerHooks` is synchronous there) — tracked as a future option, not done here. Tasks 1, 3, 4 below are kept as historical record.
+
 ## Global Constraints
 
 - Node.js ≥ 22; pnpm; tests via `vitest`. Run all commands from repo root: `/Users/torbenhartmann/Documents/customers/private/druckform`.

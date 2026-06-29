@@ -524,6 +524,25 @@ export const schema = z.object({
 `meta.requiredTokens` still works and is unioned with the derived set, so existing
 components (like `callout` above) keep functioning unchanged.
 
+#### Unit-testing a component
+
+Use the `renderComponent` test helper (`tests/helpers/render-component.ts`) to load and render a component in one call, with a default `ctx` you can override:
+
+```ts
+import { renderComponent } from "../helpers/render-component.js";
+
+// a block component (pass the typed element payload)
+await renderComponent("templates/base/components/block-heading.ts", {}, {
+  children: "Title",
+  element: { kind: "heading", level: 1 },
+}); // → "\\section{Title}"
+
+// a :::-style component (params + children; ctx.frontmatter/token overridable)
+await renderComponent("templates/base/components/infobox.component.yaml", { title: "Note" }, {
+  children: "Body",
+});
+```
+
 ### 5.3 Escaping & safety (read this before writing LaTeX)
 
 `children` arrives **already processed**. Everything else you splice in is your responsibility. Import helpers from `druckform`:
