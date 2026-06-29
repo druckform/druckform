@@ -1,5 +1,6 @@
 import type {
   ASTNode,
+  DocumentLayout,
   ParsedDocument,
   RenderCtx,
   ResolvedTemplate,
@@ -13,6 +14,23 @@ interface ComposeResult {
   tex: string;
   sourceMap: SourceMap;
 }
+
+// Engine-core packages — always injected by the composer, never overrideable.
+// They are correctness requirements of the rendered output, not layout choices:
+//   fontspec (style fonts) · xcolor (style colors) · graphicx (images) ·
+//   hyperref (links) · ulem (strikethrough).
+const ENGINE_CORE = [
+  "\\usepackage{fontspec}",
+  "\\usepackage{xcolor}",
+  "\\usepackage{graphicx}",
+  "\\usepackage{hyperref}",
+  "\\usepackage[normalem]{ulem}",
+].join("\n");
+
+// Sentinel the `document` shell component emits where the body belongs. The
+// composer renders the shell first (independent of the body), locates this
+// marker to derive the source-map offset, then substitutes the rendered body.
+const BODY_MARKER = "DRUCKFORM_BODY";
 
 export function composeDocument(
   doc: ParsedDocument,
@@ -34,27 +52,45 @@ export function composeDocument(
 
   const stylePreamble = compileStyle(styleConfig);
 
-  // Collect preamble blocks from all template components (deduplicated).
-  // Collected upfront so PREAMBLE_LINES is known before body rendering.
+  // Collect preamble blocks from all template components (deduplicated),
+  // EXCLUDING the `document` shell — it is the preamble owner, not a contributor.
   const preambleBlocks = new Set<string>();
-  for (const entry of Object.values(template.components)) {
+  for (const [name, entry] of Object.entries(template.components)) {
+    if (name === "document") continue;
     if (entry.def.preamble) preambleBlocks.add(entry.def.preamble.trim());
   }
   const componentPreamble = [...preambleBlocks].join("\n");
 
-  // Preamble structure (joined with \n):
-  //   \documentclass{article}         line 1
-  //   \usepackage{fontspec}            line 2
-  //   \usepackage{xcolor}              line 3
-  //   \usepackage{graphicx}            line 4
-  //   \usepackage{hyperref}            line 5
-  //   \usepackage[normalem]{ulem}      line 6
-  //   [stylePreamble — S lines]        lines 7 … 6+S
-  //   [componentPreamble — C lines]    lines 7+S … 6+S+C  (omitted when empty)
-  //   \begin{document}                 line 7+S+C
-  //   [body]                           starts at line 8+S+C
-  const componentPreambleLines = componentPreamble ? componentPreamble.split("\n").length : 0;
-  const PREAMBLE_LINES = stylePreamble.split("\n").length + 7 + componentPreambleLines;
+  // Render the document shell through the (overrideable) `document` component.
+  const docEntry = template.components.document;
+  if (!docEntry) {
+    throw new Error(
+      `Template '${template.name}' is missing the built-in 'document' shell component. ` +
+        `Templates must extend 'base'.`,
+    );
+  }
+  const documentclass = "article"; // Phase 3: overridable via params/frontmatter
+  const layout: DocumentLayout = {
+    kind: "document",
+    documentclass,
+    stylePreamble,
+    componentPreamble,
+    frontmatter: {},
+  };
+  const shell = docEntry.def.render({}, "", ctx, layout);
+
+  // Composer-owned head (documentclass + engine core) precedes the shell output.
+  const head = `\\documentclass{${documentclass}}\n${ENGINE_CORE}`;
+  const full = `${head}\n${shell}`;
+  const markerIdx = full.indexOf(BODY_MARKER);
+  if (markerIdx < 0) {
+    throw new Error(
+      `The 'document' component must include the body marker (${BODY_MARKER}). ` +
+        `Declarative shells use {{body}}; TS shells emit "${BODY_MARKER}".`,
+    );
+  }
+  // Number of complete lines preceding the body line, used to align the source map.
+  const PREAMBLE_LINES = full.slice(0, markerIdx).split("\n").length - 1;
 
   let lineCounter = 0;
 
@@ -94,6 +130,12 @@ export function composeDocument(
 
     // Component node
     const { block } = node;
+    if (block.name === "document" || block.name.startsWith("block:")) {
+      throw new Error(
+        `Component '${block.name}' is renderer-internal and cannot be used as a ::: block ` +
+          `(line ${block.sourceLine})`,
+      );
+    }
     const entry = template.components[block.name];
     if (!entry) {
       throw new Error(`Unknown component '${block.name}' at line ${block.sourceLine}`);
@@ -126,19 +168,7 @@ export function composeDocument(
   }
 
   const body = renderNodes(doc.nodes);
-
-  const texParts = [
-    "\\documentclass{article}",
-    "\\usepackage{fontspec}",
-    "\\usepackage{xcolor}",
-    "\\usepackage{graphicx}",
-    "\\usepackage{hyperref}",
-    "\\usepackage[normalem]{ulem}",
-    stylePreamble,
-  ];
-  if (componentPreamble) texParts.push(componentPreamble);
-  texParts.push("\\begin{document}", body, "\\end{document}");
-  const tex = texParts.join("\n");
+  const tex = full.replace(BODY_MARKER, body);
 
   return { tex, sourceMap };
 }
