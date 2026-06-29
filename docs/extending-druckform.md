@@ -79,6 +79,9 @@ The MCP server exposes **5 tools**. Rendering is a job: create → upload a ZIP 
 | `render_markdown` | `document: string, template?, style?` | `{ job_id, download_url, expires_at }` **or** `{ status: "error", error }` |
 | `validate_document` | `job_id: string` | `{ schemaVersion, ok, findings }` |
 | `finalize_job` | `job_id: string` | `{ status: "ok", download_url }` **or** `{ status: "error", error: { summary, findings } }` |
+| `list_job_files` | `job_id: string` | `{ job_id, files: [{ name, size, checksum }] }` |
+| `refresh_job` | `job_id: string` | `{ job_id, upload_url, download_url, expires_at }` |
+| `delete_job` | `job_id: string` | `{ status: "deleted", job_id }` |
 
 `style` (for `render_document`) is the **path of the style file inside the ZIP** (e.g. `"style.yaml"`, or `"styles/corporate.yaml"` if nested).
 
@@ -148,6 +151,26 @@ Job states: `pending → uploaded → rendering → done` (or `error`). `validat
 - **LaTeX compile failure** → `finalize_job` findings, attributed to source lines via the source map.
 
 Always `validate_document` before `finalize_job` to catch authoring errors cheaply.
+
+### 2.5 Edit loop (delta uploads)
+
+A job's files persist (kept alive on each upload/finalize, capped at 24h), so you can re-render after a tweak **without re-uploading unchanged assets**:
+
+```bash
+# After the first render_document → upload → finalize → download cycle:
+# 1) See what's on the job and its checksums
+#    MCP: list_job_files({ job_id })  → [{ name, size, checksum }]
+# 2) Diff locally; build a zip of ONLY the changed files (e.g. just document.md)
+# 3) Get fresh URLs (re-issues tokens + extends TTL)
+#    MCP: refresh_job({ job_id })  → { upload_url, download_url, expires_at }
+# 4) PUT the partial zip to the new upload_url (it MERGES over the job dir —
+#    unchanged assets already on disk are reused)
+curl -X PUT --data-binary @delta.zip "<upload_url>"
+# 5) MCP: finalize_job({ job_id }) → re-render → download
+# When done: MCP: delete_job({ job_id })
+```
+
+`refresh_job` issues new single-use tokens each time; `delete_job` frees the job's working directory.
 
 ---
 

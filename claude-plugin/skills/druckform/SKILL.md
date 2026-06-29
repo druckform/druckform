@@ -18,6 +18,11 @@ Convert Markdown with composable components into styled PDFs via LaTeX. Two bina
 | `render_markdown` | `document: string, template?, style?` | `{ job_id, download_url, expires_at }` or `{ status: "error", error }` |
 | `validate_document` | `job_id: string` | `{ schemaVersion: "1", ok: bool, findings: [{ severity, component, message, line? }] }` |
 | `finalize_job` | `job_id: string` | `{ status: "ok", download_url }` or `{ status: "error", error: { summary, findings } }` |
+| `list_job_files` | `job_id: string` | `{ job_id, files: [{ name, size, checksum }] }` |
+| `refresh_job` | `job_id: string` | `{ job_id, upload_url, download_url, expires_at }` |
+| `delete_job` | `job_id: string` | `{ status: "deleted", job_id }` |
+
+**Edit loop (delta uploads):** a job persists, so to re-render after a tweak: `list_job_files` (get checksums) → diff locally → `refresh_job` (fresh URLs) → upload a zip of only the changed files (it merges over the job dir; unchanged assets are reused) → `finalize_job`. `delete_job` cleans up.
 
 **Asset-less documents:** prefer `render_markdown({ document })` — it renders inline Markdown text to PDF with no ZIP and no upload, returning a `download_url` directly. `template`/`style` are optional (template may come from frontmatter, style from the template). Use the `render_document` → upload → `finalize_job` flow below only when you have assets (images, `.puml` skins).
 
