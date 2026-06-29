@@ -54,9 +54,14 @@ Always follow this sequence:
 
 ## Document Format
 
-Standard Markdown plus component directives using `:::` fences:
+A document may begin with an optional `---` YAML frontmatter block, followed by standard Markdown plus component directives using `:::` fences:
 
 ```markdown
+---
+title: Q3 Review
+author: A. Hacker
+---
+
 # Document Title
 
 Normal Markdown: **bold**, *italic*, lists, tables, code blocks.
@@ -65,6 +70,8 @@ Normal Markdown: **bold**, *italic*, lists, tables, code blocks.
 Children content (Markdown, may contain nested components)
 :::
 ```
+
+Frontmatter values are available to components (e.g. a title block). A template may declare which frontmatter fields it accepts (and which are required) — `validate_document` reports missing required fields. (For the MCP flow, still pass `template` to `render_document` explicitly.)
 
 Components can be nested:
 
