@@ -13,3 +13,7 @@ components:
     source: components/block-image.ts
   "block:codeblock":
     source: components/block-codeblock.ts
+  "block:table":
+    source: components/block-table.ts
+  "block:list":
+    source: components/block-list.ts
