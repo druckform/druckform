@@ -47,7 +47,7 @@ yargs(hideBin(process.argv))
     (y) =>
       y
         .option("template", { alias: "t", type: "string", demandOption: true })
-        .option("style", { type: "string", demandOption: true })
+        .option("style", { type: "string" })
         .option("in", { type: "string", demandOption: true })
         .option("assets", { type: "string", default: "." })
         .option("out", { type: "string", demandOption: true })

@@ -1,5 +1,9 @@
 name: base
 description: "Base template — foundational components for all documents."
+style:
+  tokens:
+    colors:
+      accent: "#2E5AAC"
 components:
   infobox:
     source: components/infobox.component.yaml

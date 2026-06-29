@@ -38,7 +38,9 @@ describe("render integration", () => {
   });
 
   it("produces error contract when token coverage fails", async () => {
-    // Create a minimal style with no tokens
+    // An empty external style; rendered against `report`, whose `callout` component
+    // requires the `warning` token that neither the empty style nor the inherited
+    // base style provides — so token coverage fails.
     const fs = await import("node:fs");
     const os = await import("node:os");
     const emptyStyle = path.join(os.tmpdir(), "empty-style.yaml");
@@ -57,7 +59,7 @@ describe("render integration", () => {
 
     await expect(
       renderCommand(
-        "base",
+        "report",
         emptyStyle,
         path.join(FIXTURES, "documents/valid.md"),
         FIXTURES,
