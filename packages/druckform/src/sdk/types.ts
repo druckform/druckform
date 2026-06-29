@@ -96,12 +96,23 @@ export type BlockElement =
   | { kind: "image"; src: string; alt: string; title: string | null } // src = resolved path
   | { kind: "hr" };
 
+// Typed payload for the built-in `document` shell component. Supplied by the
+// composer; the document component owns everything after the engine-core
+// packages and chooses the documentclass value.
+export interface DocumentLayout {
+  kind: "document";
+  documentclass: string; // class name the composer emits (default "article")
+  stylePreamble: string; // compiled style (raw LaTeX)
+  componentPreamble: string; // deduped component preambles (raw LaTeX); excludes `document`
+  frontmatter: Record<string, string>; // {} in Phase 2; populated in Phase 3
+}
+
 export type Component<TSchema extends ZodObject<ZodRawShape>> = (
   // rollup-plugin-dts re-exports z.infer<T> as `infer<T>` (keyword collision) — use _output directly
   params: TSchema["_output"],
   children: string,
   ctx: RenderCtx,
-  element?: BlockElement,
+  element?: BlockElement | DocumentLayout,
 ) => string;
 
 export interface ComponentMeta {
@@ -118,7 +129,12 @@ export interface ComponentDef {
   schema: ZodObject<ZodRawShape>;
   /** JSON Schema derived from zod schema, for contract output */
   jsonSchema: Record<string, unknown>;
-  render: (params: unknown, children: string, ctx: RenderCtx, element?: BlockElement) => string;
+  render: (
+    params: unknown,
+    children: string,
+    ctx: RenderCtx,
+    element?: BlockElement | DocumentLayout,
+  ) => string;
   /** All token names this component requires (from params + meta.requiredTokens) */
   requiredTokens: Set<string>;
   /** LaTeX preamble block this component needs injected once before \begin{document} */

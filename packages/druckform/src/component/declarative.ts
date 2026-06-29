@@ -58,7 +58,7 @@ export function loadDeclarativeComponent(yamlPath: string): ComponentDef {
     params: unknown,
     children: string,
     ctx: RenderCtx,
-    _element?: import("../sdk/types.js").BlockElement,
+    _element?: import("../sdk/types.js").BlockElement | import("../sdk/types.js").DocumentLayout,
   ): string => {
     const validated = schema.parse(params);
     let output = spec.emits;
