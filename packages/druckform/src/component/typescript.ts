@@ -4,6 +4,11 @@ import type { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import type { ComponentDef, ComponentMeta } from "../sdk/types.js";
 
+// Monotonic counter ensuring temp filenames are unique even when many components
+// in the same directory are bundled concurrently (e.g. resolveTemplate's
+// Promise.all), where Date.now() alone collides within a single millisecond.
+let tmpCounter = 0;
+
 export async function loadTypeScriptComponent(tsPath: string): Promise<ComponentDef> {
   // Bundle the TS component to a temp ESM file in memory
   const result = await esbuild.build({
@@ -24,7 +29,10 @@ export async function loadTypeScriptComponent(tsPath: string): Promise<Component
   // bundled code may contain relative imports that are resolved against the
   // file's location — placing it beside the source ensures those paths still
   // resolve correctly.
-  const tmpFile = path.join(path.dirname(tsPath), `.druckform-tmp-${Date.now()}.mjs`);
+  const tmpFile = path.join(
+    path.dirname(tsPath),
+    `.druckform-tmp-${process.pid}-${Date.now()}-${tmpCounter++}.mjs`,
+  );
   const fs = await import("node:fs/promises");
   await fs.writeFile(tmpFile, code, "utf8");
 
