@@ -81,6 +81,11 @@ export function loadDeclarativeComponent(yamlPath: string): ComponentDef {
       output = output.replaceAll("{{children}}", children);
     }
 
+    // Frontmatter slots: {{fm.<key>}} → escaped value
+    for (const [k, v] of Object.entries(ctx.frontmatter ?? {})) {
+      output = output.replaceAll(`{{fm.${k}}}`, escapeTeX(v));
+    }
+
     // Document shell slots (raw LaTeX) — only when rendering the `document` shell.
     if (element && element.kind === "document") {
       output = output

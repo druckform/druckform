@@ -6,7 +6,7 @@ import { resolveTemplate } from "../../src/template/resolver.js";
 import type { EmitOpts } from "../../src/latex/tokens-to-latex.js";
 
 const BUNDLED = path.resolve(import.meta.dirname, "../../templates");
-const ctx = { token: (n: string) => `\\${n}`, style: { colors: {}, fonts: {}, spacing: {} } };
+const ctx = { token: (n: string) => `\\${n}`, style: { colors: {}, fonts: {}, spacing: {} }, frontmatter: {} };
 let opts: EmitOpts;
 
 beforeAll(async () => {

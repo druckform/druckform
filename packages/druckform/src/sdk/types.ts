@@ -71,6 +71,8 @@ export interface RenderCtx {
   /** Returns the LaTeX macro name for a style token, e.g. \accentcolor */
   token(name: string): string;
   style: StyleTokens;
+  /** Document frontmatter values (with template-schema defaults applied), e.g. title/author. */
+  frontmatter: Record<string, string>;
 }
 
 // ── Components ──────────────────────────────────────────────────────────────

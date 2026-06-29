@@ -1,0 +1,7 @@
+name: fm-echo
+description: echoes a frontmatter value
+params: {}
+slots:
+  children: false
+emits: |
+  FM:{{fm.title}}

@@ -1,0 +1,6 @@
+name: fmdoc
+description: "Test template whose document shell echoes frontmatter"
+extends: base
+components:
+  document:
+    source: components/document.ts
