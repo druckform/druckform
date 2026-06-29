@@ -34,6 +34,9 @@ Dependencies: P1 underpins P3 (clean render path), P4 (testable scaffolds), and 
 ## 3. Phase designs (decisions the plans implement)
 
 ### Phase 1 — Loader & test ergonomics
+
+> **Outcome (2026-06-29): partially descoped.** The loader swap was attempted with `tsx` and reverted — `tsImport` can't bootstrap inside the tsup-bundled CLI on Node 22 (worker-thread hook timing). Since the race was already fixed (extensibility Phase 1) and coverage is handled by the `templates/**` exclude, only the **`renderComponent` test helper shipped**. Revisiting the swap requires Node ≥24 (`module.registerHooks`). The text below is the original design.
+
 - **Replace** the esbuild→temp-`.mjs`→`import()` loader (`src/component/typescript.ts`) with an **in-process runtime TS loader** via `tsx`'s programmatic `tsImport()` (or `jiti`): no temp file written beside the source, no race, no pre-build needed for tests, and the module is loaded through a path v8/vitest can instrument.
 - It must work both at runtime in the bundled `dist/cli.js` (production loads user `.ts` components from `DRUCKFORM_TEMPLATES_DIR`) and under vitest. Verify the chosen loader bundles under tsup.
 - Add a **test helper** `renderComponent(def, params, opts?)` (and/or a `loadAndRender` helper) exported from a test-utils module, so component TDD is one line and the standard `ctx` (token/style/frontmatter) is constructed for you.
