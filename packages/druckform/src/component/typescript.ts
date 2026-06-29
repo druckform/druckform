@@ -2,6 +2,7 @@ import path from "node:path";
 import esbuild from "esbuild";
 import type { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import { tokenRefName } from "../sdk/token-ref.js";
 import type { ComponentDef, ComponentMeta } from "../sdk/types.js";
 
 // Monotonic counter ensuring temp filenames are unique even when many components
@@ -52,7 +53,12 @@ export async function loadTypeScriptComponent(tsPath: string): Promise<Component
       zodToJsonSchema(mod.schema, { name: mod.meta.name }).definitions?.[mod.meta.name] ??
       zodToJsonSchema(mod.schema);
 
-    const requiredTokens = new Set(mod.meta.requiredTokens ?? []);
+    const derivedTokens = new Set<string>();
+    for (const field of Object.values(mod.schema.shape ?? {})) {
+      const t = tokenRefName(field);
+      if (t) derivedTokens.add(t);
+    }
+    const requiredTokens = new Set([...(mod.meta.requiredTokens ?? []), ...derivedTokens]);
 
     return {
       meta: mod.meta,

@@ -138,7 +138,7 @@ export interface TemplateConfig {
   description?: string;
   extends?: string;
   style_defaults?: string;
-  components: Record<string, ComponentOverrideSpec>;
+  components: Record<string, ComponentOverrideSpec | null>;
 }
 
 export interface ResolvedComponentEntry {

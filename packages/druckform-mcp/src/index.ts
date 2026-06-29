@@ -2,7 +2,7 @@ import { startHttpServer } from "./http-server.js";
 import { JobStore } from "./job-store.js";
 import { startMcpServer } from "./mcp-server.js";
 
-const HTTP_PORT = Number.parseInt(process.env.DRUCKFORM_HTTP_PORT ?? "7331", 10);
+const HTTP_PORT = Number.parseInt(process.env.DRUCKFORM_HTTP_PORT ?? "0", 10);
 
 const store = new JobStore();
 

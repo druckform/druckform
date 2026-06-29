@@ -25,6 +25,11 @@ export async function resolveTemplate(
     if (!entry) throw new Error(`Template not found in chain: ${tplName}`);
 
     for (const [compName, override] of Object.entries(entry.config.components ?? {})) {
+      if (override === null) {
+        // Tombstone — remove an inherited component from this point in the chain.
+        mergedComponents.delete(compName);
+        continue;
+      }
       if (override.source) {
         // Total override or new component — replaces parent entirely
         const sourcePath = path.resolve(entry.dir, override.source);
