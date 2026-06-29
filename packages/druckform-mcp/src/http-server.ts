@@ -57,6 +57,7 @@ export function createHttpServer(store: JobStore) {
 
     consumeToken(token);
     store.update(job.id, { status: "uploaded" });
+    store.keepAlive(job.id); // activity → extend TTL (capped) so edit loops persist
     return reply.code(200).send({ ok: true });
   });
 

@@ -54,6 +54,7 @@ export function makeFinalizeJobTool(store: JobStore, baseUrl: string) {
 
       if (renderResult.status === "ok") {
         store.update(job_id, { status: "done" });
+        store.keepAlive(job_id); // keep the job (and its assets) alive for the next edit cycle
         return {
           content: [
             {
