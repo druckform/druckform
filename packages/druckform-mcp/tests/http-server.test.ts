@@ -62,6 +62,33 @@ describe("HTTP server", () => {
     expect(res.statusCode).toBe(409);
   });
 
+  it("binds an ephemeral port when port 0 is requested", async () => {
+    const s = new JobStore();
+    const a = await startHttpServer(s, 0);
+    try {
+      expect(a.port).toBeGreaterThan(0);
+      expect(a.url).toBe(`http://127.0.0.1:${a.port}`);
+    } finally {
+      await a.close();
+      await s.destroy();
+    }
+  });
+
+  it("two instances on port 0 get distinct ports (no clash)", async () => {
+    const s1 = new JobStore();
+    const s2 = new JobStore();
+    const a = await startHttpServer(s1, 0);
+    const b = await startHttpServer(s2, 0);
+    try {
+      expect(a.port).not.toBe(b.port);
+    } finally {
+      await a.close();
+      await b.close();
+      await s1.destroy();
+      await s2.destroy();
+    }
+  });
+
   it("binds to DRUCKFORM_HTTP_BIND address when set", async () => {
     const savedEnv = process.env.DRUCKFORM_HTTP_BIND;
     process.env.DRUCKFORM_HTTP_BIND = "0.0.0.0";

@@ -92,14 +92,17 @@ export function createHttpServer(store: JobStore) {
 
 export async function startHttpServer(
   store: JobStore,
-  port = 7331,
-): Promise<{ url: string; close: () => Promise<void>; boundHost: string }> {
+  port = 0,
+): Promise<{ url: string; close: () => Promise<void>; boundHost: string; port: number }> {
   const app = createHttpServer(store);
   const host = process.env.DRUCKFORM_HTTP_BIND ?? "0.0.0.0";
   await app.listen({ port, host });
+  const addr = app.server.address();
+  const actualPort = typeof addr === "object" && addr ? addr.port : port;
   return {
-    url: `http://127.0.0.1:${port}`,
+    url: `http://127.0.0.1:${actualPort}`,
     close: () => app.close(),
     boundHost: host,
+    port: actualPort,
   };
 }
