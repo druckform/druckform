@@ -4,7 +4,7 @@ import { loadComponent } from "../../src/component/loader.js";
 import type { BlockElement } from "../../src/sdk/types.js";
 
 const DIR = path.resolve(import.meta.dirname, "../../templates/base/components");
-const ctx = { token: (n: string) => `\\${n}`, style: { colors: {}, fonts: {}, spacing: {} } };
+const ctx = { token: (n: string) => `\\${n}`, style: { colors: {}, fonts: {}, spacing: {} }, frontmatter: {} };
 const load = (f: string) => loadComponent(path.join(DIR, f), "");
 const el = (e: BlockElement) => e;
 

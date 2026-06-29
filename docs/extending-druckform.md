@@ -57,8 +57,8 @@ druck render \
 |---------|---------------|----------------|--------|
 | `druck templates` | — | `--json` | template list |
 | `druck components` | `--template/-t` | `--json` | resolved components for a template |
-| `druck lint` | `--template/-t`, `--in` | `--style`, `--json` | `LintContract` |
-| `druck render` | `--template/-t`, `--in`, `--out` | `--style` (overrides template style), `--assets` (default `.`), `--json` | `RenderContract` + PDF on disk |
+| `druck lint` | `--in` | `--template/-t` (else from frontmatter), `--style`, `--json` | `LintContract` |
+| `druck render` | `--in`, `--out` | `--template/-t` (else from frontmatter), `--style` (overrides template style), `--assets` (default `.`), `--json` | `RenderContract` + PDF on disk |
 | `druck mcp` | — | — | starts the MCP server (spawns `druckform-mcp`) |
 
 `--json` makes every command emit a stable machine-readable contract (see [§9](#9-contracts--types)). `render`/`lint` exit non-zero on findings.
@@ -216,6 +216,46 @@ Alice -> Bob: Hello
 ````
 
 PlantUML skins: put a `.puml` file in `assets/` and reference it from `style.yaml` via `diagrams.plantuml.skinRef`.
+
+### 3.4 Frontmatter
+
+A document may begin with a `---` YAML frontmatter block (it must be the very first line, with a closing `---`):
+
+```markdown
+---
+template: report
+title: Q3 Review
+author: A. Hacker
+---
+
+# Heading
+```
+
+- **Template selection:** `template:` picks the template, so `--template` is optional. An explicit `--template`/`-t` arg **overrides** the frontmatter value.
+- **Available to every component:** frontmatter values are exposed as `ctx.frontmatter.<key>` (TS components) and `{{fm.<key>}}` slots (declarative, escaped). The `document` shell is the usual consumer (title block / `\maketitle`).
+- **Validated against the template's schema:** a template declares which fields it accepts (and which are required / their defaults):
+
+```yaml
+# template.yaml
+frontmatter:
+  title:  { required: true }
+  author: { required: false }
+  date:   { default: "n.d." }
+```
+
+`druck lint` reports missing required frontmatter; schema `default`s are applied before components see the values. The frontmatter schema **merges down the `extends` chain** (like style). Values are treated as strings.
+
+```ts
+// a TS component reading frontmatter
+export const render: Component<typeof schema> = (_p, _c, ctx) =>
+  ctx.frontmatter.title ? `\\title{${escapeTeX(ctx.frontmatter.title)}}\\maketitle` : "";
+```
+
+```yaml
+# a declarative component reading frontmatter
+emits: |
+  \section*{{{fm.title}}}
+```
 
 ---
 

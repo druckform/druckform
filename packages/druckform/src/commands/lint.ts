@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { validateFrontmatter } from "../parse/frontmatter.js";
 import { parseDocument } from "../parse/parser.js";
 import type { ASTNode, Finding, LintContract, ResolvedTemplate } from "../sdk/types.js";
 import { mergeStyle } from "../style/merge.js";
@@ -50,18 +51,40 @@ function lintNodes(nodes: ASTNode[], resolved: ResolvedTemplate, findings: Findi
 }
 
 export async function lintCommand(
-  template: string,
+  templateArg: string | undefined,
   inFile: string,
   stylePath: string | undefined,
   json: boolean,
 ): Promise<void> {
-  const all = loadAllTemplates(BUNDLED_TEMPLATES, process.env.DRUCKFORM_TEMPLATES_DIR);
-  const resolved = await resolveTemplate(template, all);
   const doc = parseDocument(inFile);
+  const all = loadAllTemplates(BUNDLED_TEMPLATES, process.env.DRUCKFORM_TEMPLATES_DIR);
+
+  // Template: explicit --template wins; otherwise the document's frontmatter.
+  const templateName = templateArg ?? doc.frontmatter.template;
+  if (!templateName || !all.has(templateName)) {
+    const message = templateName
+      ? `Template not found: '${templateName}'`
+      : "No template specified — pass --template or set 'template' in the document frontmatter.";
+    const contract: LintContract = {
+      schemaVersion: "1",
+      ok: false,
+      findings: [{ severity: "error", component: "template", message }],
+    };
+    if (json) process.stdout.write(`${JSON.stringify(contract, null, 2)}\n`);
+    else console.error(`[error] template: ${message}`);
+    process.exit(1);
+  }
+
+  const resolved = await resolveTemplate(templateName, all);
   const findings: Finding[] = [];
 
   // Validate component names and required params recursively (handles nested blocks)
   lintNodes(doc.nodes, resolved, findings);
+
+  // Validate frontmatter against the template's declared schema
+  if (resolved.frontmatter) {
+    findings.push(...validateFrontmatter(resolved.frontmatter, doc.frontmatter));
+  }
 
   // Token coverage against the effective style (template style + optional external override)
   if (resolved.style || stylePath) {
