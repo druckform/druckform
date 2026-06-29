@@ -5,6 +5,8 @@ style:
     colors:
       accent: "#2E5AAC"
 components:
+  document:
+    source: components/document.ts
   infobox:
     source: components/infobox.component.yaml
   "block:heading":
