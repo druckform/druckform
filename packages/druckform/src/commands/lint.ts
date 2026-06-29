@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseDocument } from "../parse/parser.js";
 import type { ASTNode, Finding, LintContract, ResolvedTemplate } from "../sdk/types.js";
+import { mergeStyle } from "../style/merge.js";
 import { checkTokenCoverage, extractRequiredTokens } from "../style/tokens.js";
 import { loadStyle } from "../style/validate.js";
 import { loadAllTemplates } from "../template/loader.js";
@@ -62,9 +63,9 @@ export async function lintCommand(
   // Validate component names and required params recursively (handles nested blocks)
   lintNodes(doc.nodes, resolved, findings);
 
-  // Token coverage (if style provided)
-  if (stylePath) {
-    const styleConfig = loadStyle(stylePath);
+  // Token coverage against the effective style (template style + optional external override)
+  if (resolved.style || stylePath) {
+    const styleConfig = mergeStyle(resolved.style, stylePath ? loadStyle(stylePath) : undefined);
     const required = extractRequiredTokens(resolved);
     findings.push(...checkTokenCoverage(required, resolved, styleConfig));
   }

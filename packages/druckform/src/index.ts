@@ -6,6 +6,7 @@ export type {
   RenderCtx,
   Component,
   BlockElement,
+  DocumentLayout,
   ComponentDef,
   ComponentMeta,
   ResolvedTemplate,

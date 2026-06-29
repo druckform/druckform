@@ -7,6 +7,7 @@ import { mapErrors, summarizeFinding } from "../latex/error-mapper.js";
 import { runTectonic } from "../latex/tectonic.js";
 import { parseDocument } from "../parse/parser.js";
 import type { RenderContract } from "../sdk/types.js";
+import { mergeStyle } from "../style/merge.js";
 import { checkTokenCoverage, extractRequiredTokens } from "../style/tokens.js";
 import { loadStyle } from "../style/validate.js";
 import { loadAllTemplates } from "../template/loader.js";
@@ -21,7 +22,7 @@ const BUNDLED_TEMPLATES = fs.existsSync(_t1)
 
 export async function renderCommand(
   template: string,
-  stylePath: string,
+  stylePath: string | undefined,
   inFile: string,
   assetsDir: string,
   outPdf: string,
@@ -29,7 +30,9 @@ export async function renderCommand(
 ): Promise<void> {
   const all = loadAllTemplates(BUNDLED_TEMPLATES, process.env.DRUCKFORM_TEMPLATES_DIR);
   const resolved = await resolveTemplate(template, all);
-  const styleConfig = loadStyle(stylePath);
+  // Effective style = template's declared style, with the external --style merged on top.
+  const externalStyle = stylePath ? loadStyle(stylePath) : undefined;
+  const styleConfig = mergeStyle(resolved.style, externalStyle);
 
   // Required-token check before invoking LaTeX
   const required = extractRequiredTokens(resolved);
@@ -49,7 +52,8 @@ export async function renderCommand(
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "druckform-"));
 
   try {
-    const diagramMap = await prerenderDiagrams(doc, styleConfig, workDir, path.dirname(stylePath));
+    const diagramSkinBase = stylePath ? path.dirname(stylePath) : assetsDir;
+    const diagramMap = await prerenderDiagrams(doc, styleConfig, workDir, diagramSkinBase);
     const { tex, sourceMap } = composeDocument(doc, resolved, styleConfig, diagramMap, assetsDir);
 
     const texPath = path.join(workDir, "document.tex");
