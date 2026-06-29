@@ -137,7 +137,8 @@ export interface TemplateConfig {
   name: string;
   description?: string;
   extends?: string;
-  style_defaults?: string;
+  /** Inline default style; merged down the extends chain and under any external override. */
+  style?: StyleConfig;
   components: Record<string, ComponentOverrideSpec | null>;
 }
 
@@ -151,7 +152,8 @@ export interface ResolvedTemplate {
   description?: string;
   origin: "bundled" | "user";
   extendsChain: string[];
-  style_defaults?: string;
+  /** Style merged down the extends chain (root → leaf). */
+  style?: StyleConfig;
   components: Record<string, ResolvedComponentEntry>;
 }
 
