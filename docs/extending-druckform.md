@@ -101,12 +101,12 @@ Note: `--params` values are interpolated into `key="value"` fence attributes, so
 
 ## 2. The MCP workflow
 
-The MCP server exposes **5 tools**. Rendering is a job: create → upload a ZIP → (validate) → finalize → download.
+The MCP server exposes tools for rendering and for component authoring. Rendering is a job: create → upload a ZIP → (validate) → finalize → download.
 
 | Tool | Input | Returns |
 |------|-------|---------|
 | `list_templates` | — | `{ schemaVersion, templates: [{ name, extends, origin, description? }] }` |
-| `list_components` | `template: string` | `{ schemaVersion, template, components: [{ name, description, params, acceptsChildren, example? }] }` |
+| `list_components` | `template: string` | `{ schemaVersion, template, components: [{ name, description, params, acceptsChildren, example?, source, acceptsElement, contractVersion }] }` ¹ |
 | `render_document` | `template: string, style: string` | `{ job_id, upload_url, download_url, expires_at, manifest_spec }` |
 | `render_markdown` | `document: string, template?, style?` | `{ job_id, download_url, expires_at }` **or** `{ status: "error", error }` |
 | `preview_component` | `template: string, name: string, params?, children?` | `{ job_id, download_url, expires_at }` **or** `{ status: "error", error }` |
@@ -115,6 +115,12 @@ The MCP server exposes **5 tools**. Rendering is a job: create → upload a ZIP 
 | `list_job_files` | `job_id: string` | `{ job_id, files: [{ name, size, checksum }] }` |
 | `refresh_job` | `job_id: string` | `{ job_id, upload_url, download_url, expires_at }` |
 | `delete_job` | `job_id: string` | `{ status: "deleted", job_id }` |
+| `validate_component` | `template: string` | `LintContract` — runs `druck doctor` on a user template; requires `DRUCKFORM_TEMPLATES_DIR` |
+| `scaffold_component` | `template: string, name: string, kind?: "ts"\|"yaml", acceptsChildren?: boolean` | `{ created: string[] }` — runs `druck new component`; requires `DRUCKFORM_TEMPLATES_DIR` |
+
+> ¹ **Enriched `list_components` fields:** each component entry now includes `source` (the resolved file path, `"built-in"` for `block:*` components), `acceptsElement` (true for `block:*` components that receive a typed `BlockElement` payload), and `contractVersion` (the component contract semver, currently `"1"`). These fields are useful for authoring agents that need to distinguish user-defined components from built-ins.
+
+**Authoring tooling for agents:** for interactive component authoring inside an agent session, use the [`druckform-authoring` skill](../claude-plugin/skills/druckform-authoring/SKILL.md) instead of calling these tools directly. It encodes the full contract, drives the scaffold → doctor → preview loop, and points to the [examples gallery](examples-gallery.md) for working reference components.
 
 `style` (for `render_document`) is the **path of the style file inside the ZIP** (e.g. `"style.yaml"`, or `"styles/corporate.yaml"` if nested).
 
@@ -427,6 +433,16 @@ druck render -t report --in doc.md --style brand.yaml --out out.pdf   # brand.ya
 ## 5. Creating a component
 
 Two kinds. **Use declarative YAML** for simple "wrap children in an environment" components; **use TypeScript** when you need logic, enums, computed values, or asset handling.
+
+### Authoring loop
+
+The recommended inner loop when writing a new component is:
+
+1. **Scaffold** — `druck new component` (or MCP `scaffold_component`) emits boilerplate.
+2. **Doctor** — `druck doctor -t <template>` (or MCP `validate_component`) checks exports, slot/param consistency, and token coverage — no document or style needed.
+3. **Preview** — `druck preview-component` (or MCP `preview_component`) renders the component in isolation.
+
+Refer to the [examples gallery](examples-gallery.md) for a working set of reference components, and use the [`druckform-authoring` skill](../claude-plugin/skills/druckform-authoring/SKILL.md) when authoring inside a Claude Code session — it encodes the full contract and automates the loop above.
 
 ### Scaffold a component
 
@@ -941,7 +957,7 @@ All `--json` / MCP outputs share `schemaVersion: "1"`.
 interface Finding { severity: "error" | "warning"; component: string; message: string; line?: number; }
 
 interface TemplatesContract  { schemaVersion: "1"; templates: Array<{ name; extends: string|null; origin: "bundled"|"user"; description? }>; }
-interface ComponentsContract { schemaVersion: "1"; template: string; components: Array<{ name; description; params; acceptsChildren; example? }>; }
+interface ComponentsContract { schemaVersion: "1"; template: string; components: Array<{ name; description; params; acceptsChildren; example?; source: string; acceptsElement: boolean; contractVersion: string }>; }
 interface LintContract       { schemaVersion: "1"; ok: boolean; findings: Finding[]; }
 interface RenderContract     { schemaVersion: "1"; status: "ok"|"error"; pdf: string|null; error?: { summary; findings: Finding[] }; }
 ```

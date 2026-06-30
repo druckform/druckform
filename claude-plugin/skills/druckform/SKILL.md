@@ -13,7 +13,7 @@ Convert Markdown with composable components into styled PDFs via LaTeX. Two bina
 | Tool | Parameters | Returns |
 |------|-----------|---------|
 | `list_templates` | — | `{ schemaVersion: "1", templates: [{ name, extends, origin, description }] }` |
-| `list_components` | `template: string` | `{ schemaVersion: "1", template, components: [{ name, description, params, acceptsChildren, example }] }` |
+| `list_components` | `template: string` | `{ schemaVersion: "1", template, components: [{ name, description, params, acceptsChildren, example, source, acceptsElement, contractVersion }] }` — `source` is the resolved file path (`"built-in"` for `block:*`); `acceptsElement` is true for block components; `contractVersion` is `"1"` |
 | `render_document` | `template: string, style: string` | `{ job_id, upload_url, download_url, expires_at, manifest_spec }` |
 | `render_markdown` | `document: string, template?, style?` | `{ job_id, download_url, expires_at }` or `{ status: "error", error }` |
 | `preview_component` | `template: string, name: string, params?, children?` | `{ job_id, download_url, expires_at }` or `{ status: "error", error }` — quickly preview one `:::` component with sample params; defaults to the component's `meta.example` when params/children are omitted |
@@ -22,6 +22,10 @@ Convert Markdown with composable components into styled PDFs via LaTeX. Two bina
 | `list_job_files` | `job_id: string` | `{ job_id, files: [{ name, size, checksum }] }` |
 | `refresh_job` | `job_id: string` | `{ job_id, upload_url, download_url, expires_at }` |
 | `delete_job` | `job_id: string` | `{ status: "deleted", job_id }` |
+| `validate_component` | `template: string` | `LintContract` — validates a user template via `druck doctor`; requires `DRUCKFORM_TEMPLATES_DIR` |
+| `scaffold_component` | `template: string, name: string, kind?: "ts"\|"yaml", acceptsChildren?: boolean` | `{ created: string[] }` — scaffolds component boilerplate via `druck new component`; requires `DRUCKFORM_TEMPLATES_DIR` |
+
+**Component authoring:** for authoring components or templates inside a Claude Code session, invoke the `druckform-authoring` skill — it encodes the full component/template contract, the scaffold → doctor → preview loop, and the examples gallery.
 
 **Edit loop (delta uploads):** a job persists, so to re-render after a tweak: `list_job_files` (get checksums) → diff locally → `refresh_job` (fresh URLs) → upload a zip of only the changed files (it merges over the job dir; unchanged assets are reused) → `finalize_job`. `delete_job` cleans up.
 
