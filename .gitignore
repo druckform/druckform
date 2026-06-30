@@ -6,3 +6,6 @@ coverage/
 .DS_Store
 .claude/
 .idea/
+
+# esbuild component-loader scratch files (written next to source, normally auto-removed)
+.druckform-tmp-*
