@@ -75,4 +75,24 @@ describe("druck doctor", () => {
     process.env.DRUCKFORM_TEMPLATES_DIR = undefined;
     restore();
   });
+
+  it("converts a throwing document-shell probe into a finding instead of crashing", async () => {
+    const USER = path.resolve(import.meta.dirname, "../fixtures/templates");
+    process.env.DRUCKFORM_TEMPLATES_DIR = USER;
+    const { writes, exits, restore } = capture();
+    await expect(doctorCommand("throwingdoc", true)).rejects.toThrow("exit");
+    const out = JSON.parse(writes.join(""));
+    expect(out.ok).toBe(false);
+    expect(exits[0]).toBe(1);
+    expect(
+      out.findings.some(
+        (f: { severity: string; component: string; message: string }) =>
+          f.severity === "error" &&
+          f.component === "document" &&
+          /threw during probe/i.test(f.message),
+      ),
+    ).toBe(true);
+    process.env.DRUCKFORM_TEMPLATES_DIR = undefined;
+    restore();
+  });
 });

@@ -89,7 +89,17 @@ function checkDocumentShell(resolved: ResolvedTemplate, findings: Finding[]): vo
     componentPreamble: "%COMPONENTS",
     frontmatter: {},
   };
-  const out = entry.def.render({}, "", ctx, layout);
+  let out: string;
+  try {
+    out = entry.def.render({}, "", ctx, layout);
+  } catch (err) {
+    findings.push({
+      severity: "error",
+      component: "document",
+      message: `document shell threw during probe: ${err instanceof Error ? err.message : String(err)}`,
+    });
+    return;
+  }
   if (!out.includes("DRUCKFORM_BODY")) {
     findings.push({
       severity: "error",
