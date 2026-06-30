@@ -4,6 +4,7 @@ import { componentsCommand } from "./commands/components.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { lintCommand } from "./commands/lint.js";
 import { mcpCommand } from "./commands/mcp.js";
+import { previewComponentCommand } from "./commands/preview-component.js";
 import { renderCommand } from "./commands/render.js";
 import { templatesCommand } from "./commands/templates.js";
 
@@ -66,6 +67,32 @@ yargs(hideBin(process.argv))
         .option("json", { type: "boolean", default: false }),
     async (argv) => {
       await renderCommand(argv.template, argv.style, argv.in, argv.assets, argv.out, argv.json);
+    },
+  )
+  .command(
+    "preview-component",
+    "Render a single component with sample params to a PDF (fast author loop)",
+    (y) =>
+      y
+        .option("template", { alias: "t", type: "string", demandOption: true })
+        .option("name", { type: "string", demandOption: true })
+        .option("params", { type: "string", describe: "JSON object of component params" })
+        .option("children", { type: "string", describe: "Markdown body for the component" })
+        .option("style", { type: "string" })
+        .option("out", { type: "string", demandOption: true })
+        .option("watch", { type: "boolean", default: false })
+        .option("json", { type: "boolean", default: false }),
+    async (argv) => {
+      await previewComponentCommand(
+        argv.template,
+        argv.name,
+        argv.params,
+        argv.children,
+        argv.style,
+        argv.out,
+        argv.json,
+        argv.watch,
+      );
     },
   )
   .command(

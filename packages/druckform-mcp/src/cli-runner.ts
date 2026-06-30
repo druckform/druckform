@@ -49,6 +49,26 @@ export function lintDocument(template: string, inFile: string, stylePath: string
   ) as LintContract;
 }
 
+export function previewComponent(
+  template: string,
+  name: string,
+  params: Record<string, string> | undefined,
+  children: string | undefined,
+  outPdf: string,
+): RenderContract {
+  const args = ["preview-component", "--template", template, "--name", name, "--out", outPdf];
+  if (params && Object.keys(params).length > 0) args.push("--params", JSON.stringify(params));
+  if (children !== undefined) args.push("--children", children);
+  const { stdout, stderr } = run(args);
+  try {
+    return JSON.parse(stdout) as RenderContract;
+  } catch {
+    throw new Error(
+      `druck preview-component produced no parseable contract: ${stderr || stdout || "(empty)"}`,
+    );
+  }
+}
+
 export function renderDocument(
   template: string | undefined,
   stylePath: string | undefined,

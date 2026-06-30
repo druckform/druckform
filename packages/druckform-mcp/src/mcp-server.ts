@@ -7,6 +7,7 @@ import { makeFinalizeJobTool } from "./tools/finalize-job.js";
 import { listComponentsTool } from "./tools/list-components.js";
 import { makeListJobFilesTool } from "./tools/list-job-files.js";
 import { listTemplatesTool } from "./tools/list-templates.js";
+import { makePreviewComponentTool } from "./tools/preview-component.js";
 import { makeRefreshJobTool } from "./tools/refresh-job.js";
 import { makeRenderDocumentTool } from "./tools/render-document.js";
 import { makeRenderMarkdownTool } from "./tools/render-markdown.js";
@@ -53,6 +54,20 @@ export async function startMcpServer(store: JobStore, baseUrl: string): Promise<
     renderMdTool.description,
     { document: z.string(), template: z.string().optional(), style: z.string().optional() },
     async (args) => renderMdTool.handler(args),
+  );
+
+  // preview_component: { template: string, name: string, params?: object, children?: string }
+  const previewTool = makePreviewComponentTool(store, baseUrl);
+  server.tool(
+    previewTool.name,
+    previewTool.description,
+    {
+      template: z.string(),
+      name: z.string(),
+      params: z.record(z.string()).optional(),
+      children: z.string().optional(),
+    },
+    async (args) => previewTool.handler(args),
   );
 
   // finalize_job: { job_id: string }
