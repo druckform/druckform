@@ -2,7 +2,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
-import { listComponents, listTemplates, renderDocument } from "../src/cli-runner.js";
+import {
+  listComponents,
+  listTemplates,
+  previewComponent,
+  renderDocument,
+} from "../src/cli-runner.js";
 
 // Point DRUCK_BIN at the built druckform CLI
 beforeAll(() => {
@@ -28,6 +33,20 @@ describe("cli-runner", () => {
     expect(result.schemaVersion).toBe("1");
     expect(result.template).toBe("base");
     expect(result.components.some((c) => c.name === "infobox")).toBe(true);
+  });
+
+  it("previewComponent returns an error contract for a block: component name (no tectonic needed)", () => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cli-runner-pc-"));
+    // Using a block: prefixed name triggers a validation/lookup error before tectonic runs
+    const result = previewComponent(
+      "base",
+      "block:nonexistent",
+      undefined,
+      undefined,
+      path.join(tmp, "out.pdf"),
+    );
+    expect(result.status).toBe("error");
+    expect(result.error?.summary).toBeTruthy();
   });
 
   it("renderDocument returns an error contract (not a throw) when no template resolves", () => {
