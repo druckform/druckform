@@ -2,6 +2,9 @@ import type { ZodObject, ZodRawShape } from "zod";
 
 // ── Findings & contract shapes ──────────────────────────────────────────────
 
+/** Bump when the component authoring contract changes shape. */
+export const COMPONENT_CONTRACT_VERSION = "1";
+
 export interface Finding {
   severity: "error" | "warning";
   component: string;
@@ -27,7 +30,10 @@ export interface ComponentsContract {
     description: string;
     params: Record<string, unknown>; // JSON Schema
     acceptsChildren: boolean;
+    acceptsElement: boolean; // reads the BlockElement/DocumentLayout payload
+    contractVersion: string;
     example?: string;
+    source?: string; // raw component source text
   }>;
 }
 

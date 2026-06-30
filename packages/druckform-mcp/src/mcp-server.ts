@@ -11,6 +11,8 @@ import { makePreviewComponentTool } from "./tools/preview-component.js";
 import { makeRefreshJobTool } from "./tools/refresh-job.js";
 import { makeRenderDocumentTool } from "./tools/render-document.js";
 import { makeRenderMarkdownTool } from "./tools/render-markdown.js";
+import { makeScaffoldComponentTool } from "./tools/scaffold-component.js";
+import { makeValidateComponentTool } from "./tools/validate-component.js";
 import { makeValidateDocumentTool } from "./tools/validate-document.js";
 
 export async function startMcpServer(store: JobStore, baseUrl: string): Promise<void> {
@@ -92,6 +94,27 @@ export async function startMcpServer(store: JobStore, baseUrl: string): Promise<
   const deleteTool = makeDeleteJobTool(store);
   server.tool(deleteTool.name, deleteTool.description, { job_id: z.string() }, async (args) =>
     deleteTool.handler(args),
+  );
+
+  const validateComponentTool = makeValidateComponentTool();
+  server.tool(
+    validateComponentTool.name,
+    validateComponentTool.description,
+    { template: z.string() },
+    async (args) => validateComponentTool.handler(args),
+  );
+
+  const scaffoldTool = makeScaffoldComponentTool();
+  server.tool(
+    scaffoldTool.name,
+    scaffoldTool.description,
+    {
+      template: z.string(),
+      name: z.string(),
+      kind: z.enum(["ts", "yaml"]).optional(),
+      acceptsChildren: z.boolean().optional(),
+    },
+    async (args) => scaffoldTool.handler(args),
   );
 
   const transport = new StdioServerTransport();

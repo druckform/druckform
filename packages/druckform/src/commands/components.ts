@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { ComponentsContract } from "../sdk/types.js";
+import { COMPONENT_CONTRACT_VERSION, type ComponentsContract } from "../sdk/types.js";
 import { loadAllTemplates } from "../template/loader.js";
 import { resolveTemplate } from "../template/resolver.js";
 
@@ -19,13 +19,26 @@ export async function componentsCommand(template: string, json: boolean): Promis
   const contract: ComponentsContract = {
     schemaVersion: "1",
     template,
-    components: Object.values(resolved.components).map(({ def }) => ({
-      name: def.meta.name,
-      description: def.meta.description,
-      params: def.jsonSchema,
-      acceptsChildren: def.meta.acceptsChildren,
-      ...(def.meta.example !== undefined ? { example: def.meta.example } : {}),
-    })),
+    components: Object.values(resolved.components).map(({ def, sourcePath }) => {
+      const source = (() => {
+        try {
+          return fs.readFileSync(sourcePath, "utf8");
+        } catch {
+          return undefined;
+        }
+      })();
+      return {
+        name: def.meta.name,
+        description: def.meta.description,
+        params: def.jsonSchema,
+        acceptsChildren: def.meta.acceptsChildren,
+        // Heuristic: TS components read `element`; declarative document shells use {{body}}.
+        acceptsElement: source ? /\belement\b/.test(source) || source.includes("{{body}}") : false,
+        contractVersion: COMPONENT_CONTRACT_VERSION,
+        ...(def.meta.example !== undefined ? { example: def.meta.example } : {}),
+        ...(source !== undefined ? { source } : {}),
+      };
+    }),
   };
 
   if (json) {
