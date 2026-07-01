@@ -68,7 +68,11 @@ export interface StyleConfig {
     spacing?: Record<string, string>;
   };
   diagrams?: {
-    mermaid?: { theme?: string; themeVariablesRef?: string };
+    mermaid?: {
+      theme?: string;
+      themeVariablesRef?: string;
+      themeVariables?: Record<string, string>;
+    };
     plantuml?: { skinRef?: string };
   };
 }
