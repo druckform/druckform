@@ -16,12 +16,12 @@ const OUT = path.join(import.meta.dirname, "../../dist/test-preview.pdf");
 describe("synthesizeComponentDoc", () => {
   it("uses meta.example verbatim when no params/children are given", () => {
     expect(
-      synthesizeComponentDoc("infobox", {}, undefined, '::: infobox title="Note"\nx\n:::'),
-    ).toBe('::: infobox title="Note"\nx\n:::');
+      synthesizeComponentDoc("infobox", {}, undefined, ':::infobox{title="Note"}\nx\n:::'),
+    ).toBe(':::infobox{title="Note"}\nx\n:::');
   });
   it("builds a fenced block from params + children", () => {
     expect(synthesizeComponentDoc("infobox", { title: "Hi" }, "Body", undefined)).toBe(
-      '::: infobox title="Hi"\nBody\n:::\n',
+      ':::infobox{title="Hi"}\nBody\n:::\n',
     );
   });
 });

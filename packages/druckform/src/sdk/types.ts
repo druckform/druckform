@@ -214,6 +214,7 @@ export interface ComponentBlock {
   params: Record<string, string>;
   children: ASTNode[];
   sourceLine: number;
+  form: "leaf" | "container";
 }
 
 export type ASTNode =

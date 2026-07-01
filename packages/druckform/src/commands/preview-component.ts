@@ -28,7 +28,7 @@ export function synthesizeComponentDoc(
   const attrs = Object.entries(params)
     .map(([k, v]) => `${k}="${v}"`)
     .join(" ");
-  const open = attrs ? `::: ${name} ${attrs}` : `::: ${name}`;
+  const open = `:::${name}{${attrs}}`;
   return `${open}\n${children ?? ""}\n:::\n`;
 }
 

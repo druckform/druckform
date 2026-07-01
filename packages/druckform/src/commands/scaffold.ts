@@ -35,7 +35,7 @@ export const meta = {
   name: "${name}",
   description: "TODO: describe ${name}",
   acceptsChildren: ${acceptsChildren},
-  example: "::: ${name}\\n${childrenLine}:::",
+  example: ":::${name}{}\\n${childrenLine}:::",
 };
 
 export function render(
