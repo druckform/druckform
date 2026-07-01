@@ -186,6 +186,11 @@ function renderInlineChildren(children: Token[], opts: EmitOpts): string {
       case "directive_inline": {
         const name = (c.meta as { name?: string } | undefined)?.name ?? "";
         const params = (c.meta as { params?: Record<string, string> } | undefined)?.params ?? {};
+        if (name === "raw") {
+          out +=
+            params.format === "latex" ? ((c.meta as { rawContent?: string }).rawContent ?? "") : "";
+          break;
+        }
         const inner = c.children ? renderInlineChildren(c.children, opts) : "";
         const entry = opts.template.components[name];
         if (!entry || entry.def.meta.form !== "inline") {

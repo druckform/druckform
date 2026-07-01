@@ -76,6 +76,27 @@ function parseLines(lines: string[], startLine: number): [ASTNode[], number] {
       const params = parseDirectiveAttributes(containerOpen[2] ?? "");
       const sourceLine = i + 1;
       i++;
+      if (name === "raw") {
+        const rawLines: string[] = [];
+        while (i < lines.length && !CONTAINER_CLOSE_RE.test(lines[i] ?? "")) {
+          rawLines.push(lines[i] ?? "");
+          i++;
+        }
+        i++; // skip closing :::
+        nodes.push({
+          type: "component",
+          block: {
+            name,
+            params,
+            children: [],
+            sourceLine,
+            form: "container",
+            rawBody: rawLines.join("\n"),
+          },
+        });
+        textStartLine = i + 1;
+        continue;
+      }
       const [children, closedAt] = parseLines(lines, i);
       i = closedAt + 1; // skip the closing :::
       nodes.push({
@@ -93,11 +114,18 @@ function parseLines(lines: string[], startLine: number): [ASTNode[], number] {
       const content = leaf[2];
       const params = parseDirectiveAttributes(leaf[3] ?? "");
       const sourceLine = i + 1;
-      const children: ASTNode[] = content ? [{ type: "text", content, sourceLine }] : [];
-      nodes.push({
-        type: "component",
-        block: { name, params, children, sourceLine, form: "leaf" },
-      });
+      if (name === "raw") {
+        nodes.push({
+          type: "component",
+          block: { name, params, children: [], sourceLine, form: "leaf", rawBody: content ?? "" },
+        });
+      } else {
+        const children: ASTNode[] = content ? [{ type: "text", content, sourceLine }] : [];
+        nodes.push({
+          type: "component",
+          block: { name, params, children, sourceLine, form: "leaf" },
+        });
+      }
       i++;
       textStartLine = i + 1;
       continue;

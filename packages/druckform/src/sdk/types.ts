@@ -217,6 +217,8 @@ export interface ComponentBlock {
   children: ASTNode[];
   sourceLine: number;
   form: "leaf" | "container";
+  /** For the reserved `raw` directive: verbatim body (not markdown-parsed). */
+  rawBody?: string;
 }
 
 export type ASTNode =

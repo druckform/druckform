@@ -43,6 +43,12 @@ export function inlineDirectivePlugin(md: MarkdownIt): void {
     if (silent) return true;
 
     const token = state.push("directive_inline", "", 0);
+    if (name === "raw") {
+      token.meta = { name, params: parseDirectiveAttributes(attrStr), rawContent: content ?? "" };
+      token.children = [];
+      state.pos = cur;
+      return true;
+    }
     token.meta = { name, params: parseDirectiveAttributes(attrStr) };
     token.children = content ? (md.parseInline(content, state.env)[0]?.children ?? []) : [];
     state.pos = cur;
