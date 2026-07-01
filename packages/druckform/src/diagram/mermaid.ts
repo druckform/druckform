@@ -58,6 +58,13 @@ export function renderMermaid(
     throw new Error(`mermaid rendering failed: ${result.stderr}`);
   }
 
+  // With htmlLabels:false, Mermaid emits each word as its own <tspan> with a
+  // leading space; librsvg applies default SVG whitespace handling and strips that
+  // leading space, so adjacent words collide ("Neuer Artikel" → "NeuerArtikel").
+  // Force xml:space="preserve" on the SVG <text> elements to keep the spaces.
+  const svg = fs.readFileSync(svgFile, "utf8").replaceAll("<text ", '<text xml:space="preserve" ');
+  fs.writeFileSync(svgFile, svg, "utf8");
+
   // Convert SVG → PDF using rsvg-convert
   const pdfResult = spawnSync("rsvg-convert", ["-f", "pdf", "-o", pdfFile, svgFile], {
     encoding: "utf8",
