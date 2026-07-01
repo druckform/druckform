@@ -29,6 +29,10 @@ const ENGINE_CORE = [
   "\\usepackage{graphicx}",
   "\\usepackage{hyperref}",
   "\\usepackage[normalem]{ulem}",
+  // Default max heights for diagrams/images so tall graphics never overflow the
+  // page. A document shell may \\renewcommand either to tune the cap.
+  "\\newcommand{\\druckDiagramMaxHeight}{0.82\\textheight}",
+  "\\newcommand{\\druckImageMaxHeight}{0.82\\textheight}",
 ].join("\n");
 
 // Sentinel the `document` shell component emits where the body belongs. The
@@ -40,7 +44,7 @@ export function composeDocument(
   doc: ParsedDocument,
   template: ResolvedTemplate,
   styleConfig: StyleConfig,
-  diagramMap: Map<string, string>, // fence text → pdf path
+  diagramMap: Map<string, { pdfPath: string; maxHeight?: string }>, // fence text → rendered pdf + optional per-diagram height
   assetsRoot: string,
   workDir: string = os.tmpdir(),
 ): ComposeResult {
@@ -131,13 +135,17 @@ export function composeDocument(
       let text = node.content;
       const placeholders = new Map<string, string>();
       let idx = 0;
-      for (const [fence, pdfPath] of diagramMap) {
+      for (const [fence, { pdfPath, maxHeight }] of diagramMap) {
         // Placeholder must survive mdToLatex's escapeTeX untouched: letters and
         // digits only (no `_` — escapeTeX turns `_` into `\_`, which would break
         // the post-pass replaceAll below). The `END` terminator keeps no index a
         // prefix of another (e.g. "...1END" never matches inside "...10END").
         const placeholder = `DRUCKFORMDIAGRAM${idx++}END`;
-        placeholders.set(placeholder, `\\includegraphics[width=\\linewidth]{${pdfPath}}`);
+        const heightArg = maxHeight ?? "\\druckDiagramMaxHeight";
+        placeholders.set(
+          placeholder,
+          `\\begin{center}\\includegraphics[width=\\linewidth,height=${heightArg},keepaspectratio]{${pdfPath}}\\end{center}`,
+        );
         text = text.replaceAll(fence, placeholder);
       }
       // mdToLatex escapes user text; the placeholder is letters+digits only, so it

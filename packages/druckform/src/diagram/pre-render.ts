@@ -1,37 +1,43 @@
 import type { ParsedDocument, StyleConfig } from "../sdk/types.js";
+import { parseMaxHeightFraction } from "./fence-info.js";
 import { renderMermaid } from "./mermaid.js";
 import { renderPlantUML } from "./plantuml.js";
 
-const MERMAID_FENCE = /^```mermaid\n([\s\S]*?)```$/m;
-const PLANTUML_FENCE = /^```plantuml\n([\s\S]*?)```$/m;
+const MERMAID_FENCE = /^```mermaid( [^\n]*)?\n([\s\S]*?)```$/m;
+const PLANTUML_FENCE = /^```plantuml( [^\n]*)?\n([\s\S]*?)```$/m;
 
 /**
  * Finds fenced diagram blocks in text nodes, renders them to PDF files,
- * and returns a map of original fence text → absolute PDF path.
+ * and returns a map of original fence text → { pdf path, optional per-diagram
+ * max height } derived from a `maxheight=<n>` directive in the fence info-string.
  */
 export async function prerenderDiagrams(
   doc: ParsedDocument,
   styleConfig: StyleConfig,
   workDir: string,
   styleDir?: string,
-): Promise<Map<string, string>> {
-  const results = new Map<string, string>();
+): Promise<Map<string, { pdfPath: string; maxHeight?: string }>> {
+  const results = new Map<string, { pdfPath: string; maxHeight?: string }>();
   let mermaidIdx = 0;
   let plantumlIdx = 0;
 
   function processText(text: string) {
     for (const match of text.matchAll(new RegExp(MERMAID_FENCE.source, "gm"))) {
       const fence = match[0] ?? "";
-      const content = match[1] ?? "";
+      const maxHeight = parseMaxHeightFraction(match[1]);
+      const content = match[2] ?? "";
       if (!results.has(fence)) {
-        results.set(fence, renderMermaid(content, styleConfig, workDir, mermaidIdx++));
+        const pdfPath = renderMermaid(content, styleConfig, workDir, mermaidIdx++, styleDir);
+        results.set(fence, { pdfPath, ...(maxHeight ? { maxHeight } : {}) });
       }
     }
     for (const match of text.matchAll(new RegExp(PLANTUML_FENCE.source, "gm"))) {
       const fence = match[0] ?? "";
-      const content = match[1] ?? "";
+      const maxHeight = parseMaxHeightFraction(match[1]);
+      const content = match[2] ?? "";
       if (!results.has(fence)) {
-        results.set(fence, renderPlantUML(content, styleConfig, workDir, plantumlIdx++, styleDir));
+        const pdfPath = renderPlantUML(content, styleConfig, workDir, plantumlIdx++, styleDir);
+        results.set(fence, { pdfPath, ...(maxHeight ? { maxHeight } : {}) });
       }
     }
   }

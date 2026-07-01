@@ -44,6 +44,7 @@ const schema = {
           properties: {
             theme: { type: "string" },
             themeVariablesRef: { type: "string" },
+            themeVariables: { type: "object", additionalProperties: { type: "string" } },
           },
           additionalProperties: false,
         },
