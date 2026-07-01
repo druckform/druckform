@@ -79,7 +79,7 @@ describe("mdToLatex (GFM)", () => {
 
   it("resolves image paths against the assets root", () => {
     expect(mdToLatex("![alt](pic.png)", opts)).toContain(
-      "\\includegraphics[max width=\\linewidth]{/assets/pic.png}",
+      "\\includegraphics[max width=\\linewidth, max totalheight=\\druckImageMaxHeight]{/assets/pic.png}",
     );
   });
 });

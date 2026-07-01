@@ -40,7 +40,7 @@ describe("simple block components", () => {
     const def = await load("block-image.ts");
     expect(
       def.render({}, "", ctx, el({ kind: "image", src: "/abs/pic.png", alt: "x", title: null })),
-    ).toBe("\\includegraphics[max width=\\linewidth]{/abs/pic.png}");
+    ).toBe("\\includegraphics[max width=\\linewidth, max totalheight=\\druckImageMaxHeight]{/abs/pic.png}");
   });
 
   it("codeblock emits lstlisting with raw code", async () => {
