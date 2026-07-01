@@ -1136,7 +1136,7 @@ import type {
 ```
 
 (`FontSpec` is a type used inside `StyleTokens`/`StyleConfig` but is not itself
-re-exported from `druckform` — reference it structurally as `{ name: string; options?: string }` or via `StyleTokens["fonts"]["main"]`.)
+re-exported from `druckform` — reference it structurally as `{ name: string; options?: string }` or via `NonNullable<StyleTokens["fonts"]["main"]>` (the bare `StyleTokens["fonts"]["main"]` includes `| undefined`).)
 
 ---
 
