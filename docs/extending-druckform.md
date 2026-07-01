@@ -229,7 +229,7 @@ Standard Markdown, plus component directives via `:::` fences.
 
 Normal Markdown: **bold**, *italic*, `code`, lists, tables, links.
 
-::: infobox title="Note" accent="accent"
+:::infobox{title="Note" accent="accent"}
 Body text — **may contain** nested Markdown and components.
 :::
 ```
@@ -237,17 +237,80 @@ Body text — **may contain** nested Markdown and components.
 Components nest:
 
 ```markdown
-::: infobox title="Outer"
+:::infobox{title="Outer"}
 Outer body.
-::: infobox title="Inner"
+:::infobox{title="Inner"}
 Nested.
 :::
 :::
 ```
 
-Parameter values are `key="value"` pairs on the fence line. Run `druck components -t <template>` (or `list_components`) to see each component's exact params, whether it `acceptsChildren`, and a working `example`.
+Attribute values live in the `{...}` block on the fence line. Run `druck components -t <template>` (or `list_components`) to see each component's exact params, whether it `acceptsChildren`, and a working `example`.
 
-### 3.2 GFM block elements
+### 3.2 Directive components (inline / leaf / container)
+
+Components are invoked with **generic directives** — one syntax, three forms, distinguished by colon count:
+
+| Form | Syntax | `meta.form` | Emits |
+|------|--------|-------------|-------|
+| inline | `:name[content]{attrs}` | `"inline"` | inline LaTeX, spliced mid-paragraph |
+| leaf | `::name[content]{attrs}` | `"leaf"` | block LaTeX, single line, no nested body |
+| container | `:::name{attrs}` … `:::` | `"container"` (default) | block LaTeX, can nest further Markdown/components |
+
+`ComponentMeta.form?: "inline" | "leaf" | "container"` (`src/sdk/types.ts`) declares the form; omitting it defaults to `"container"`. Parser grammar (`src/parse/parser.ts`):
+
+- Container open: `^:::([A-Za-z][\w-]*)\s*(?:\{([^}]*)\})?\s*$`, closed by a `:::`-only line.
+- Leaf: `^::([A-Za-z][\w-]*)(?:\[([^\]]*)\])?\s*(?:\{([^}]*)\})?\s*$`, one line, no closing fence.
+- Inline is handled by a markdown-it inline rule (`src/latex/inline-directive.ts`), not the block parser.
+
+#### Attribute model `{#id .class key=val}`
+
+`src/parse/directive-attrs.ts` parses the text inside `{...}` into a flat `Record<string, string>`, space-separated tokens:
+
+- `#id` — sets `id`; if given more than once, the **last one wins**.
+- `.class` — adds a class; multiple `.class` tokens **combine** into a single space-joined `class` value.
+- `key="value"` / `key='value'` / `key=value` (bare, no whitespace) — a regular attribute.
+- a bare `key` with no `=` becomes `key="true"`.
+
+```markdown
+:::infobox{#note .highlight accent="warning"}
+Body.
+:::
+```
+
+#### Inline firing rule
+
+The inline rule (`src/latex/inline-directive.ts`) only fires at a `:` when: the name is letter-initial (`[A-Za-z][\w-]*`), and it is **immediately** followed by `[content]` and/or `{attrs}` — at least one of the two is required. This is deliberate: it's what keeps ordinary prose colons (`10:30`, `localhost:8080`) from being parsed as directives — a bare `:word` with nothing bracketed after it is left as literal text. To escape a colon that would otherwise start a directive-looking token, use `\:`.
+
+An inline/leaf/container name that resolves to no registered component in the active template is a hard error (`Unknown component '<name>' at line N` from the composer) — there's no silent passthrough.
+
+**Form/output contract:** inline components must return inline-safe LaTeX (no paragraph breaks); leaf and container components emit block-level LaTeX. The composer itself doesn't branch on `form` — it just calls `render` for `block.name/params/children` as before, so this is a contract on the component author, not a runtime check.
+
+#### The `raw` escape hatch
+
+`raw` is a reserved directive name, valid in all three forms, that passes its body through **verbatim** (unescaped) instead of going through a component's `render`:
+
+```markdown
+:::raw{format=latex}
+\clearpage
+:::
+```
+
+```markdown
+::raw[\vspace{1em}]{format=latex}
+```
+
+```markdown
+Inline raw: :raw[\textbackslash]{format=latex} inline latex.
+```
+
+Only `format=latex` is honored by druckform's LaTeX pipeline (the raw body is emitted as-is — see `composer.ts` / `tokens-to-latex.ts`, which check `params.format === "latex"`). `format=html` is reserved for a future Obsidian renderer and is **skipped** (emits nothing) by druckform. Reach for `raw` when you need LaTeX the component model genuinely can't express, rather than reaching for `escapeTeX`/`Tex` workarounds in a component.
+
+#### Portability (Obsidian) intent
+
+This directive syntax follows the CommonMark "generic directives" convention — the same one implemented by the micromark/remark-directive ecosystem — rather than a druckform-specific dialect. The motivation is forward compatibility: the same `document.md` source should, in principle, be renderable by a future Obsidian plugin implementing the same convention (live preview / reading mode) without any druckform-specific preprocessing. That plugin does not exist as part of this project; the syntax choice simply keeps the door open.
+
+### 3.3 GFM block elements
 
 Full GitHub Flavored Markdown is rendered by built-in `block:*` components (see [§7](#7-built-in-block-elements-gfm)): headings, lists (incl. nested + task lists), tables with alignment, blockquotes, fenced code, images, links/autolinks, strikethrough, horizontal rules.
 
@@ -266,7 +329,7 @@ Full GitHub Flavored Markdown is rendered by built-in `block:*` components (see 
 ~~struck~~ and a [link](https://example.com).
 ```
 
-### 3.3 Diagrams
+### 3.4 Diagrams
 
 Mermaid / PlantUML fenced code blocks are **pre-rendered to PDF images** before Markdown conversion (so they never hit `block:codeblock`):
 
@@ -347,7 +410,7 @@ title instead of the fence info-string:
 \renewcommand{\druckImageMaxHeight}{0.5\textheight}
 ```
 
-### 3.4 Frontmatter
+### 3.5 Frontmatter
 
 A document may begin with a `---` YAML frontmatter block (it must be the very first line, with a closing `---`):
 
@@ -503,7 +566,7 @@ interface RenderCtx {
 }
 ```
 
-(`frontmatter`, `templateDir`, and `asset` are covered in [§3.4](#34-frontmatter)
+(`frontmatter`, `templateDir`, and `asset` are covered in [§3.5](#35-frontmatter)
 and [§5.4](#54-template-bundled-assets-ctxasset-ctxtemplatedir).)
 
 `ctx.style` exposes the raw token values as-is from the resolved style —
@@ -671,7 +734,7 @@ emits: |                         # the LaTeX template with {{slots}}
   {{children}}
   \end{infobox}
 example: |
-  ::: infobox title="Note"
+  :::infobox{title="Note"}
   Body text, **may contain** nested blocks.
   :::
 ```
@@ -709,7 +772,7 @@ export const meta = {
   name: "callout",
   description: "Variant-styled callout box with a title.",
   acceptsChildren: true,
-  example: '::: callout variant="warn" title="Heads up"\nBody\n:::',
+  example: ':::callout{variant="warn" title="Heads up"}\nBody\n:::',
   requiredTokens: ["accent", "warning"],   // checked against the style
 };
 
@@ -1082,7 +1145,7 @@ root** — the `--assets <dir>` CLI flag (default `"."`; see the [CLI reference]
 or the ZIP bundle's `assets/` dir over MCP — to an absolute path via `resolveAssetPath`
 before emitting `\includegraphics`. It also caps the image height at
 `\druckImageMaxHeight` (default `0.82\textheight`, overridable per-document or
-per-image via `maxheight=<n>` in the image title — see [§3.3](#33-diagrams)).
+per-image via `maxheight=<n>` in the image title — see [§3.4](#34-diagrams)).
 
 ### 7.1 The `element` payload
 
