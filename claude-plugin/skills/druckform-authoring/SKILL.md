@@ -41,7 +41,7 @@ Components are invoked via generic directives, one syntax with three forms by co
 
 **Attributes** `{#id .class key=val}`: `#id` (last wins if repeated), `.class` (repeats combine), `key="value"`/`key=value` (bare value has no whitespace), bare `key` alone → `"true"`.
 
-**Inline firing rule:** a `:` only starts an inline directive when followed by a letter-initial name and immediately by `[content]` and/or `{attrs}` (at least one required) — this is what keeps `10:30`/`localhost:8080` as plain text. Escape a would-be directive colon with `\:`. An unregistered name in any form is an error, not a passthrough.
+**Inline firing rule:** a `:` only starts an inline directive when followed by a letter-initial name and immediately by `[content]` and/or `{attrs}` (at least one required) — this is what keeps `10:30`/`localhost:8080` as plain text. Escape a would-be directive colon with `\:` (standard Markdown backslash-escaping — `:` is an escapable punctuation character, so the leading `:` never reaches the directive rule). An unregistered name in any form is an error, not a passthrough.
 
 **`raw` escape hatch** — reserved name, all three forms, emits its body verbatim (unescaped): `:::raw{format=latex} ... :::`, `::raw[...]{format=latex}`, `:raw[...]{format=latex}`. Only `format=latex` is honored (emitted as-is); `format=html` is reserved for a future Obsidian renderer and is skipped by druckform. Use it when you need LaTeX the component model can't express.
 

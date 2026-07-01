@@ -280,7 +280,7 @@ Body.
 
 #### Inline firing rule
 
-The inline rule (`src/latex/inline-directive.ts`) only fires at a `:` when: the name is letter-initial (`[A-Za-z][\w-]*`), and it is **immediately** followed by `[content]` and/or `{attrs}` — at least one of the two is required. This is deliberate: it's what keeps ordinary prose colons (`10:30`, `localhost:8080`) from being parsed as directives — a bare `:word` with nothing bracketed after it is left as literal text. To escape a colon that would otherwise start a directive-looking token, use `\:`.
+The inline rule (`src/latex/inline-directive.ts`) only fires at a `:` when: the name is letter-initial (`[A-Za-z][\w-]*`), and it is **immediately** followed by `[content]` and/or `{attrs}` — at least one of the two is required. This is deliberate: it's what keeps ordinary prose colons (`10:30`, `localhost:8080`) from being parsed as directives — a bare `:word` with nothing bracketed after it is left as literal text. To escape a colon that would otherwise start a directive-looking token, use `\:` — this is standard Markdown backslash-escaping (`:` is an escapable punctuation character), so markdown-it consumes the escaped colon as literal text before the directive rule sees it; no directive-specific escape logic is involved.
 
 An inline/leaf/container name that resolves to no registered component in the active template is a hard error (`Unknown component '<name>' at line N` from the composer) — there's no silent passthrough.
 
