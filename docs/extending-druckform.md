@@ -102,9 +102,29 @@ Note: `--params` values are interpolated into `key="value"` fence attributes, so
 
 > **Token check happens before LaTeX.** If a component declares `requiredTokens` your style doesn't provide, `render` exits with an error finding and never invokes tectonic. See [§4.4](#44-token-coverage-the-one-gotcha).
 
+### 1.1 Execution engines
+
+`druck render` and `druck preview-component` choose where the render actually runs:
+
+- `--engine local` — spawn `tectonic`/`rsvg-convert`/`mmdc`/`java` directly on this machine.
+- `--engine docker` — relay the same invocation into a Docker container.
+- `--engine auto` (default) — probe for the four local tools; if **all** are found, run locally; if **any** are missing, relay to Docker automatically.
+
+The `DRUCK_ENGINE` environment variable (`local`/`docker`/`auto`) sets the same choice and is used whenever `--engine` is not passed; `--engine` wins if both are set.
+
+The Docker image defaults to `ghcr.io/corwynt/druckform:<cli-version>` (the installed `druckform` package's own version) and can be overridden with `DRUCK_DOCKER_IMAGE`.
+
+In `auto` mode, a boot report — which of `tectonic`/`rsvg-convert`/`mmdc`/`java` were found, their resolved paths, and which engine was picked — is printed to **stderr**. This keeps `--json` output on stdout machine-readable even when the auto-probe runs.
+
+**Identity mounts:** when relaying to Docker, druckform bind-mounts the current working directory and the resolved parent directories of `--in`/`--out`/`--style`/`--assets` (and `DRUCKFORM_TEMPLATES_DIR`, if set) at the **same absolute path** inside the container as outside, and runs with that same directory as `-w` (working directory). Relative paths you pass on the command line therefore resolve the same way whether the render happens locally or in the container — no path rewriting needed.
+
+This engine selection applies **only** to `render` and `preview-component`. All other commands (`templates`, `components`, `lint`, `doctor`, `new`, `mcp`) always run locally.
+
 ---
 
 ## 2. The MCP workflow
+
+> The CLI (`druck`) is the primary interface for rendering and authoring; the MCP server below is an optional alternative for host integrations (e.g. Claude Code) that prefer a job/upload/download flow over shelling out to a binary.
 
 The MCP server exposes tools for rendering and for component authoring. Rendering is a job: create → upload a ZIP → (validate) → finalize → download.
 
