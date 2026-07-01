@@ -1,19 +1,13 @@
 import fs from "node:fs";
 import yaml from "js-yaml";
-import type { ASTNode, ComponentBlock, ParsedDocument } from "../sdk/types.js";
+import type { ASTNode, ParsedDocument } from "../sdk/types.js";
+import { parseDirectiveAttributes } from "./directive-attrs.js";
 
-const OPEN_RE = /^:::\s+(\S+)(.*)?$/;
-const CLOSE_RE = /^:::$/;
-const ATTR_RE = /(\w+)="([^"]*)"/g;
-
-function parseAttrs(attrStr: string): Record<string, string> {
-  const attrs: Record<string, string> = {};
-  const re = new RegExp(ATTR_RE.source, "g");
-  for (let match = re.exec(attrStr); match !== null; match = re.exec(attrStr)) {
-    attrs[match[1] ?? ""] = match[2] ?? "";
-  }
-  return attrs;
-}
+// Container: three colons, tight name, optional {attrs}. Closed by a `:::` line.
+const CONTAINER_OPEN_RE = /^:::([A-Za-z][\w-]*)\s*(?:\{([^}]*)\})?\s*$/;
+const CONTAINER_CLOSE_RE = /^:::\s*$/;
+// Leaf: two colons, tight name, optional [content], optional {attrs}, own line.
+const LEAF_RE = /^::([A-Za-z][\w-]*)(?:\[([^\]]*)\])?\s*(?:\{([^}]*)\})?\s*$/;
 
 // Detects a leading `---` … `---` YAML frontmatter block. Only a `---` on the
 // very first line with a later closing `---` counts; otherwise the leading `---`
@@ -68,25 +62,71 @@ function parseLines(lines: string[], startLine: number): [ASTNode[], number] {
 
   while (i < lines.length) {
     const line = lines[i] ?? "";
-    const openMatch = OPEN_RE.exec(line);
-    const closeMatch = CLOSE_RE.test(line) && !openMatch;
+    const containerOpen = CONTAINER_OPEN_RE.exec(line);
+    const isClose = CONTAINER_CLOSE_RE.test(line) && !containerOpen;
 
-    if (closeMatch) {
+    if (isClose) {
       flushText();
-      return [nodes, i]; // caller consumes the :::
+      return [nodes, i]; // caller consumes the closing :::
     }
 
-    if (openMatch) {
+    if (containerOpen) {
       flushText();
-      const name = openMatch[1] ?? "";
-      const attrStr = openMatch[2] ?? "";
-      const params = parseAttrs(attrStr);
+      const name = containerOpen[1] ?? "";
+      const params = parseDirectiveAttributes(containerOpen[2] ?? "");
       const sourceLine = i + 1;
       i++;
+      if (name === "raw") {
+        const rawLines: string[] = [];
+        while (i < lines.length && !CONTAINER_CLOSE_RE.test(lines[i] ?? "")) {
+          rawLines.push(lines[i] ?? "");
+          i++;
+        }
+        i++; // skip closing :::
+        nodes.push({
+          type: "component",
+          block: {
+            name,
+            params,
+            children: [],
+            sourceLine,
+            form: "container",
+            rawBody: rawLines.join("\n"),
+          },
+        });
+        textStartLine = i + 1;
+        continue;
+      }
       const [children, closedAt] = parseLines(lines, i);
       i = closedAt + 1; // skip the closing :::
-      const block: ComponentBlock = { name, params, children, sourceLine };
-      nodes.push({ type: "component", block });
+      nodes.push({
+        type: "component",
+        block: { name, params, children, sourceLine, form: "container" },
+      });
+      textStartLine = i + 1;
+      continue;
+    }
+
+    const leaf = LEAF_RE.exec(line);
+    if (leaf) {
+      flushText();
+      const name = leaf[1] ?? "";
+      const content = leaf[2];
+      const params = parseDirectiveAttributes(leaf[3] ?? "");
+      const sourceLine = i + 1;
+      if (name === "raw") {
+        nodes.push({
+          type: "component",
+          block: { name, params, children: [], sourceLine, form: "leaf", rawBody: content ?? "" },
+        });
+      } else {
+        const children: ASTNode[] = content ? [{ type: "text", content, sourceLine }] : [];
+        nodes.push({
+          type: "component",
+          block: { name, params, children, sourceLine, form: "leaf" },
+        });
+      }
+      i++;
       textStartLine = i + 1;
       continue;
     }

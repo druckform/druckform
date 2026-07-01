@@ -141,6 +141,8 @@ export interface ComponentMeta {
   name: string;
   description: string;
   acceptsChildren: boolean;
+  /** Directive form. Defaults to "container". */
+  form?: "inline" | "leaf" | "container";
   example?: string;
   /** Token names this component reads from ctx.token() — for static validation */
   requiredTokens?: string[];
@@ -214,6 +216,9 @@ export interface ComponentBlock {
   params: Record<string, string>;
   children: ASTNode[];
   sourceLine: number;
+  form: "leaf" | "container";
+  /** For the reserved `raw` directive: verbatim body (not markdown-parsed). */
+  rawBody?: string;
 }
 
 export type ASTNode =

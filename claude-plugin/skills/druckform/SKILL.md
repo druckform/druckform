@@ -79,7 +79,7 @@ author: A. Hacker
 
 Normal Markdown: **bold**, *italic*, lists, tables, code blocks.
 
-::: component-name param="value" other-param="value"
+:::component-name{param="value" other-param="value"}
 Children content (Markdown, may contain nested components)
 :::
 ```
@@ -89,9 +89,9 @@ Frontmatter values are available to components (e.g. a title block). A template 
 Components can be nested:
 
 ```markdown
-::: infobox title="Outer"
+:::infobox{title="Outer"}
 Text here.
-::: infobox title="Inner"
+:::infobox{title="Inner"}
 Nested content.
 :::
 :::

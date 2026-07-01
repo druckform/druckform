@@ -39,8 +39,8 @@ describe("composer document shell", () => {
     expect(tex).not.toContain("DRUCKFORM_BODY"); // marker substituted
   });
 
-  it("rejects ::: document used as a body block", () => {
-    const doc = parseMarkdownString("::: document\nx\n:::\n");
+  it("rejects :::document used as a body block", () => {
+    const doc = parseMarkdownString(":::document{}\nx\n:::\n");
     expect(() => composeDocument(doc, template, style, new Map(), "/a")).toThrow(
       /renderer-internal/,
     );

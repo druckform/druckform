@@ -4,41 +4,45 @@ This guide covers everything you need to write and style druckform documents.
 
 ## Document format
 
-A druckform document is a standard Markdown file (`.md`) with component directives embedded using `:::` fences.
+A druckform document is a standard Markdown file (`.md`) with component **directives** — a syntax with three forms distinguished by colon count:
+
+- **inline** `:name[content]{attrs}` — mid-sentence, must emit inline LaTeX
+- **leaf** `::name[content]{attrs}` — single line, no nested body
+- **container** `:::name{attrs}` … `:::` — a fenced block that can contain further Markdown/components
 
 ```markdown
 # Document Title
 
 Regular Markdown: **bold**, *italic*, `code`, > blockquotes, lists, tables.
 
-::: component-name param="value"
+:::component-name{param="value"}
 Children content — also Markdown.
 :::
 ```
 
-Save the file as `document.md` at the root of your ZIP bundle.
+See [Directive components](#directive-components) below for the full syntax and attribute model. Save the file as `document.md` at the root of your ZIP bundle.
 
 ## Component syntax
 
-Components are invoked with a `:::` opening fence, parameter attributes, optional children, and a `:::` closing fence:
+Container components are invoked with a `:::name{attrs}` opening fence, optional children, and a `:::` closing fence:
 
 ```markdown
-::: infobox title="Key Finding"
+:::infobox{title="Key Finding"}
 The body of the info box supports **Markdown** and nested components.
 :::
 ```
 
 **Parameter rules:**
-- All values are strings, quoted with `"`. No bare or single-quoted values.
+- Attributes live in `{...}`: `key="value"` (quoted), `key=value` (bare, no spaces), plus the shorthands `#id` and `.class`. See [Directive components](#directive-components).
 - Required params: the CLI/MCP will report an error if missing.
 - Optional params with defaults: omitting them uses the default from the template.
 
 **Nesting:** components can be nested to any depth:
 
 ```markdown
-::: infobox title="Outer"
+:::infobox{title="Outer"}
 Outer body.
-::: infobox title="Inner"
+:::infobox{title="Inner"}
 Inner body.
 :::
 :::
@@ -52,6 +56,47 @@ druck components --template base --json
 
 or call the `list_components` MCP tool.
 
+## Directive components
+
+druckform components are invoked with **generic directives** — a Markdown convention with three forms, distinguished by how many colons open them:
+
+| Form | Syntax | Use for |
+|------|--------|---------|
+| inline | `:name[content]{attrs}` | mid-sentence content (e.g. a badge); must emit inline LaTeX |
+| leaf | `::name[content]{attrs}` | a single line, attributes-only, no nested body |
+| container | `:::name{attrs}` … `:::` | a fenced block that can contain further Markdown/components |
+
+A component declares which form it is via `meta.form: "inline" | "leaf" | "container"` (default `"container"` when omitted).
+
+**Attribute model** — the `{...}` block accepts, space-separated:
+- `#id` — sets an id; if given more than once, the **last one wins**.
+- `.class` — adds a class; repeated `.class` tokens **combine** (space-joined).
+- `key="value"` / `key='value'` / `key=value` (bare, no whitespace) — an attribute; a bare `key` with no `=` is shorthand for `key="true"`.
+
+```markdown
+:::infobox{#note .highlight accent="warning"}
+Shown with an id, a class, and a param.
+:::
+```
+
+**Inline firing rule:** an inline directive only fires when `:` is immediately followed by a letter-initial name (`[A-Za-z][\w-]*`) *and* at least one of `[content]` / `{attrs}` follows immediately after the name. This is what keeps ordinary prose colons (`10:30`, `localhost:8080`) untouched — a bare `:word` with no bracket/brace never fires. To write a literal colon immediately before what would otherwise look like a directive name, escape it as `\:` (standard Markdown backslash-escaping — `:` is an escapable punctuation character, so the escaped colon is consumed as literal text and never reaches the directive rule). An inline/leaf/container name that isn't a registered component is an error (unregistered names do not silently pass through).
+
+## Directive components: the `raw` escape hatch
+
+`raw` is a reserved directive name that emits its body **verbatim** — unescaped — into the LaTeX output, for the rare case where you need LaTeX the component model can't express:
+
+```markdown
+:::raw{format=latex}
+\clearpage
+:::
+```
+
+It also works as a leaf or inline form: `::raw[...]{format=latex}`, `:raw[...]{format=latex}`. Only `format=latex` emits anything through druckform's LaTeX pipeline; `format=html` is reserved for a future Obsidian renderer and is silently skipped here.
+
+## Portability
+
+The directive syntax follows the CommonMark "generic directives" convention (the same one implemented by micromark/remark-directive), rather than a druckform-specific dialect. The intent is that the same `document.md` source can, in the future, also be opened and live-previewed by an Obsidian plugin implementing the same convention — that plugin is not part of druckform, but the document format is written to not preclude it.
+
 ## Built-in components
 
 The components below are from the bundled templates. Run `druck components --template <name>` to see up-to-date parameter lists for your chosen template.
@@ -61,7 +106,7 @@ The components below are from the bundled templates. Run `druck components --tem
 A boxed callout with a title and body.
 
 ```markdown
-::: infobox title="Key Finding"
+:::infobox{title="Key Finding"}
 Body text. **Markdown** is supported. Nested components are allowed.
 :::
 ```
@@ -76,7 +121,7 @@ Body text. **Markdown** is supported. Nested components are allowed.
 A variant-styled alert box. Only available in the `report` template (and templates that extend it).
 
 ```markdown
-::: callout variant="warn" title="Heads up"
+:::callout{variant="warn" title="Heads up"}
 Body text.
 :::
 ```

@@ -19,6 +19,6 @@ emits: |
   {{children}}
   \end{infobox}
 example: |
-  ::: infobox title="Note"
+  :::infobox{title="Note"}
   Body text, **may contain** nested blocks.
   :::

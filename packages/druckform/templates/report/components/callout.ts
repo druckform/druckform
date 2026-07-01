@@ -11,7 +11,7 @@ export const meta = {
   name: "callout",
   description: "Variant-styled callout box with a title.",
   acceptsChildren: true,
-  example: '::: callout variant="warn" title="Heads up"\nBody\n:::',
+  example: ':::callout{variant="warn" title="Heads up"}\nBody\n:::',
   requiredTokens: ["accent", "warning"],
 };
 

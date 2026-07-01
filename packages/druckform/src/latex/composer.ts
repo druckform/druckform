@@ -167,6 +167,10 @@ export function composeDocument(
           `(line ${block.sourceLine})`,
       );
     }
+    if (block.name === "raw") {
+      return block.params.format === "latex" ? (block.rawBody ?? "") : "";
+    }
+
     const entry = template.components[block.name];
     if (!entry) {
       throw new Error(`Unknown component '${block.name}' at line ${block.sourceLine}`);

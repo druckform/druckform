@@ -29,6 +29,24 @@ Add `--watch` to `preview-component` to re-render on every save while editing.
 previewed in isolation — iterate on them with a full `render` against a small test
 document instead.
 
+## Directive Components (inline / leaf / container)
+
+Components are invoked via generic directives, one syntax with three forms by colon count:
+
+| Form | Syntax | `meta.form` |
+|---|---|---|
+| inline | `:name[content]{attrs}` | `"inline"` — must emit inline LaTeX |
+| leaf | `::name[content]{attrs}` | `"leaf"` — single line, no nested body |
+| container | `:::name{attrs}` … `:::` | `"container"` (default) — can nest Markdown/components |
+
+**Attributes** `{#id .class key=val}`: `#id` (last wins if repeated), `.class` (repeats combine), `key="value"`/`key=value` (bare value has no whitespace), bare `key` alone → `"true"`.
+
+**Inline firing rule:** a `:` only starts an inline directive when followed by a letter-initial name and immediately by `[content]` and/or `{attrs}` (at least one required) — this is what keeps `10:30`/`localhost:8080` as plain text. Escape a would-be directive colon with `\:` (standard Markdown backslash-escaping — `:` is an escapable punctuation character, so the leading `:` never reaches the directive rule). An unregistered name in any form is an error, not a passthrough.
+
+**`raw` escape hatch** — reserved name, all three forms, emits its body verbatim (unescaped): `:::raw{format=latex} ... :::`, `::raw[...]{format=latex}`, `:raw[...]{format=latex}`. Only `format=latex` is honored (emitted as-is); `format=html` is reserved for a future Obsidian renderer and is skipped by druckform. Use it when you need LaTeX the component model can't express.
+
+**Portability:** the syntax follows the CommonMark generic-directives convention (micromark/remark-directive compatible) so the same document could later be opened by an Obsidian plugin — not part of druckform today.
+
 ## TypeScript Component Contract
 
 A `.ts` component **must** export three names (four if it needs a preamble):
@@ -47,7 +65,7 @@ export const meta = {
   name: "banner",               // must equal the filename stem for auto-discovery
   description: "Full-width banner.",
   acceptsChildren: true,
-  example: '::: banner title="Launch"\nBody\n:::',
+  example: ':::banner{title="Launch"}\nBody\n:::',
   // requiredTokens: ["accent"],  // legacy — still honored; unioned with tokenRef-derived set
 };
 
@@ -97,7 +115,7 @@ emits: |
   {{children}}
   \end{infobox}
 example: |
-  ::: infobox title="Note"
+  :::infobox{title="Note"}
   Body text.
   :::
 ```

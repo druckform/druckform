@@ -40,7 +40,7 @@ export const meta = {
   name: "my-component",
   description: "A short description shown in druck components --json.",
   acceptsChildren: true,
-  example: '::: my-component title="Hello"\nBody text.\n:::',
+  example: ':::my-component{title="Hello"}\nBody text.\n:::',
   requiredTokens: ["accent"], // token names this component reads from ctx.token()
 };
 
@@ -99,7 +99,7 @@ slots:
 emits: |
   \badge{{{color}}}{{{label}}}
 example: |
-  ::: badge label="NEW"
+  :::badge{label="NEW"}
   :::
 ```
 
