@@ -1,7 +1,7 @@
-# Druckform — Developer & Extension Guide
+# Druckform: Developer & Extension Guide
 
 > Convert Markdown (+ composable components) into styled PDFs via LaTeX.
-> This guide covers the full developer surface: the MCP workflow, the CLI, and how to author **styles**, **components**, and **templates** — including how to override built-in behavior.
+> This guide covers the full developer surface: the MCP workflow, the CLI, and how to author **styles**, **components**, and **templates**, including how to override built-in behavior.
 
 ---
 
@@ -55,7 +55,7 @@ druck render \
 
 | Command | Required flags | Optional flags | Output |
 |---------|---------------|----------------|--------|
-| `druck templates` | — | `--json` | template list |
+| `druck templates` | none | `--json` | template list |
 | `druck components` | `--template/-t` | `--json` | resolved components for a template |
 | `druck lint` | `--in` | `--template/-t` (else from frontmatter), `--style`, `--json` | `LintContract` |
 | `druck doctor` | `--template/-t` | `--json` | `LintContract` |
@@ -63,15 +63,15 @@ druck render \
 | `druck preview-component` | `--template/-t`, `--name`, `--out` | `--params` (JSON), `--children`, `--style`, `--engine local\|docker\|auto` (default `auto`), `--watch`, `--json` | `RenderContract` + PDF on disk |
 | `druck new component` | `--name`, `--template` | `--format ts\|yaml` (default `ts`), `--accepts-children` | emits component boilerplate under the template's `components/` dir |
 | `druck new template` | `--name` | `--extends` | emits `template.yaml` boilerplate in `$DRUCKFORM_TEMPLATES_DIR/<name>/` |
-| `druck mcp` | — | — | starts the MCP server (spawns `druckform-mcp`) |
+| `druck mcp` | none | none | starts the MCP server (spawns `druckform-mcp`) |
 
 `--json` makes every command emit a stable machine-readable contract (see [§9](#9-contracts--types)). `render`/`lint`/`preview-component` exit non-zero on findings.
 
 #### Preview a component
 
-`druck preview-component` renders a single component — no full document required. It synthesizes the directive in the component's own `form` (inline `:name[…]{…}`, leaf `::name[…]{…}`, or container `:::name{…} … :::`, from `meta.form`), so the preview exercises the same render path a real document would. It does not target `block:*` built-ins or the `document` shell (renderer-internal). It is the fastest authoring feedback loop for component authors.
+`druck preview-component` renders a single component; no full document required. It synthesizes the directive in the component's own `form` (inline `:name[…]{…}`, leaf `::name[…]{…}`, or container `:::name{…} … :::`, from `meta.form`), so the preview exercises the same render path a real document would. It does not target `block:*` built-ins or the `document` shell (renderer-internal). It is the fastest authoring feedback loop for component authors.
 
-It cannot preview the `document` shell or `block:*` overrides in isolation — both
+It cannot preview the `document` shell or `block:*` overrides in isolation, both
 are renderer-internal and are never invoked as a `:::` block (see [§6.5](#65-overriding-the-document-shell-page-layout)
 and [§7](#7-built-in-block-elements-gfm)). Iterate on those with a full `druck render`
 against a small test document instead.
@@ -85,7 +85,7 @@ druck preview-component \
   --out /tmp/p.pdf
 ```
 
-When `--params` and `--children` are omitted, the component's `meta.example` is used as the default input — so a bare invocation gives you a working preview immediately:
+When `--params` and `--children` are omitted, the component's `meta.example` is used as the default input, so a bare invocation gives you a working preview immediately:
 
 ```bash
 druck preview-component -t base --name infobox --out /tmp/p.pdf
@@ -106,17 +106,17 @@ Note: `--params` values are interpolated into `key="value"` fence attributes, so
 
 `druck render` and `druck preview-component` choose where the render actually runs:
 
-- `--engine local` — spawn `tectonic`/`rsvg-convert`/`mmdc`/`java` directly on this machine.
-- `--engine docker` — relay the same invocation into a Docker container.
-- `--engine auto` (default) — probe for the four local tools; if **all** are found, run locally; if **any** are missing, relay to Docker automatically.
+- `--engine local`: spawn `tectonic`/`rsvg-convert`/`mmdc`/`java` directly on this machine.
+- `--engine docker`: relay the same invocation into a Docker container.
+- `--engine auto` (default): probe for the four local tools; if **all** are found, run locally; if **any** are missing, relay to Docker automatically.
 
 The `DRUCK_ENGINE` environment variable (`local`/`docker`/`auto`) sets the same choice and is used whenever `--engine` is not passed; `--engine` wins if both are set.
 
 The Docker image defaults to `ghcr.io/druckform/druckform:<cli-version>` (the installed `@druckform/core` package's own version) and can be overridden with `DRUCK_DOCKER_IMAGE`.
 
-In `auto` mode, a boot report — which of `tectonic`/`rsvg-convert`/`mmdc`/`java` were found, their resolved paths, and which engine was picked — is printed to **stderr**. This keeps `--json` output on stdout machine-readable even when the auto-probe runs.
+In `auto` mode, a boot report (which of `tectonic`/`rsvg-convert`/`mmdc`/`java` were found, their resolved paths, and which engine was picked) is printed to **stderr**. This keeps `--json` output on stdout machine-readable even when the auto-probe runs.
 
-**Identity mounts:** when relaying to Docker, druckform bind-mounts the current working directory, the parent directories of the file inputs `--in`/`--out`/`--style`, and the `--assets` directory (and `DRUCKFORM_TEMPLATES_DIR`, if set) itself at the **same absolute path** inside the container as outside, and runs with the current directory as `-w` (working directory). Relative paths you pass on the command line therefore resolve the same way whether the render happens locally or in the container — no path rewriting needed.
+**Identity mounts:** when relaying to Docker, druckform bind-mounts the current working directory, the parent directories of the file inputs `--in`/`--out`/`--style`, and the `--assets` directory (and `DRUCKFORM_TEMPLATES_DIR`, if set) itself at the **same absolute path** inside the container as outside, and runs with the current directory as `-w` (working directory). Relative paths you pass on the command line therefore resolve the same way whether the render happens locally or in the container; no path rewriting needed.
 
 This engine selection applies **only** to `render` and `preview-component`. All other commands (`templates`, `components`, `lint`, `doctor`, `new`, `mcp`) always run locally.
 
@@ -130,26 +130,26 @@ The MCP server exposes tools for rendering and for component authoring. Renderin
 
 | Tool | Input | Returns |
 |------|-------|---------|
-| `list_templates` | — | `{ schemaVersion, templates: [{ name, extends, origin, description? }] }` |
+| `list_templates` | none | `{ schemaVersion, templates: [{ name, extends, origin, description? }] }` |
 | `list_components` | `template: string` | `{ schemaVersion, template, components: [{ name, description, params, acceptsChildren, example?, source, acceptsElement, form, contractVersion }] }` ¹ |
 | `render_document` | `template: string, style: string` | `{ job_id, upload_url, download_url, expires_at, manifest_spec }` |
 | `render_markdown` | `document: string, template?, style?` | `{ job_id, download_url, expires_at }` **or** `{ status: "error", error }` |
-| `preview_component` | `template: string, name: string, params?, children?` | `{ job_id, download_url, expires_at }` **or** `{ status: "error", error }` — previews any inline/leaf/container component (synthesized in its own `form`); the `document` shell and `block:*` overrides cannot be previewed this way |
+| `preview_component` | `template: string, name: string, params?, children?` | `{ job_id, download_url, expires_at }` **or** `{ status: "error", error }`: previews any inline/leaf/container component (synthesized in its own `form`); the `document` shell and `block:*` overrides cannot be previewed this way |
 | `validate_document` | `job_id: string` | `{ schemaVersion, ok, findings }` |
 | `finalize_job` | `job_id: string` | `{ status: "ok", download_url }` **or** `{ status: "error", error: { summary, findings } }` |
 | `list_job_files` | `job_id: string` | `{ job_id, files: [{ name, size, checksum }] }` |
 | `refresh_job` | `job_id: string` | `{ job_id, upload_url, download_url, expires_at }` |
 | `delete_job` | `job_id: string` | `{ status: "deleted", job_id }` |
-| `validate_component` | `template: string` | `LintContract` — runs `druck doctor` on a user template; requires `DRUCKFORM_TEMPLATES_DIR` |
-| `scaffold_component` | `template: string, name: string, kind?: "ts"\|"yaml", acceptsChildren?: boolean` | `{ created: string[] }` — runs `druck new component`; requires `DRUCKFORM_TEMPLATES_DIR` |
+| `validate_component` | `template: string` | `LintContract`: runs `druck doctor` on a user template; requires `DRUCKFORM_TEMPLATES_DIR` |
+| `scaffold_component` | `template: string, name: string, kind?: "ts"\|"yaml", acceptsChildren?: boolean` | `{ created: string[] }`: runs `druck new component`; requires `DRUCKFORM_TEMPLATES_DIR` |
 
-> ¹ **Enriched `list_components` fields:** each component entry now includes `source` (the resolved file path, `"built-in"` for `block:*` components), `acceptsElement` (true for `block:*` components that receive a typed `BlockElement` payload), `form` (the directive form — `"inline"`, `"leaf"`, or `"container"`; defaults to `"container"`), and `contractVersion` (the component contract semver, currently `"1"`). These fields are useful for authoring agents that need to distinguish user-defined components from built-ins and know how each is invoked.
+> ¹ **Enriched `list_components` fields:** each component entry now includes `source` (the resolved file path, `"built-in"` for `block:*` components), `acceptsElement` (true for `block:*` components that receive a typed `BlockElement` payload), `form` (the directive form: `"inline"`, `"leaf"`, or `"container"`; defaults to `"container"`), and `contractVersion` (the component contract semver, currently `"1"`). These fields are useful for authoring agents that need to distinguish user-defined components from built-ins and know how each is invoked.
 
 **Authoring tooling for agents:** for interactive component authoring inside an agent session, use the [`druckform-authoring` skill](../claude-plugin/skills/druckform-authoring/SKILL.md) instead of calling these tools directly. It encodes the full contract, drives the scaffold → doctor → preview loop, and points to the [examples gallery](examples-gallery.md) for working reference components.
 
 `style` (for `render_document`) is the **path of the style file inside the ZIP** (e.g. `"style.yaml"`, or `"styles/corporate.yaml"` if nested).
 
-**No-ZIP shortcut:** for an asset-less document, skip the ZIP/upload dance entirely — call `render_markdown({ document })` with the Markdown text inline (`template`/`style` optional; the template may come from the document's frontmatter, the style from the template). It returns a `download_url` directly. Use the `render_document` + upload + `finalize_job` flow only when the bundle has assets (images, `.puml` skins).
+**No-ZIP shortcut:** for an asset-less document, skip the ZIP/upload dance entirely: call `render_markdown({ document })` with the Markdown text inline (`template`/`style` optional; the template may come from the document's frontmatter, the style from the template). It returns a `download_url` directly. Use the `render_document` + upload + `finalize_job` flow only when the bundle has assets (images, `.puml` skins).
 
 ### 2.1 End-to-end
 
@@ -269,7 +269,7 @@ Attribute values live in the `{...}` block on the fence line. Run `druck compone
 
 ### 3.2 Directive components (inline / leaf / container)
 
-Components are invoked with **generic directives** — one syntax, three forms, distinguished by colon count:
+Components are invoked with **generic directives**: one syntax, three forms, distinguished by colon count:
 
 | Form | Syntax | `meta.form` | Emits |
 |------|--------|-------------|-------|
@@ -287,9 +287,9 @@ Components are invoked with **generic directives** — one syntax, three forms, 
 
 `src/parse/directive-attrs.ts` parses the text inside `{...}` into a flat `Record<string, string>`, space-separated tokens:
 
-- `#id` — sets `id`; if given more than once, the **last one wins**.
-- `.class` — adds a class; multiple `.class` tokens **combine** into a single space-joined `class` value.
-- `key="value"` / `key='value'` / `key=value` (bare, no whitespace) — a regular attribute.
+- `#id`: sets `id`; if given more than once, the **last one wins**.
+- `.class`: adds a class; multiple `.class` tokens **combine** into a single space-joined `class` value.
+- `key="value"` / `key='value'` / `key=value` (bare, no whitespace): a regular attribute.
 - a bare `key` with no `=` becomes `key="true"`.
 
 ```markdown
@@ -300,11 +300,11 @@ Body.
 
 #### Inline firing rule
 
-The inline rule (`src/latex/inline-directive.ts`) only fires at a `:` when: the name is letter-initial (`[A-Za-z][\w-]*`), and it is **immediately** followed by `[content]` and/or `{attrs}` — at least one of the two is required. This is deliberate: it's what keeps ordinary prose colons (`10:30`, `localhost:8080`) from being parsed as directives — a bare `:word` with nothing bracketed after it is left as literal text. To escape a colon that would otherwise start a directive-looking token, use `\:` — this is standard Markdown backslash-escaping (`:` is an escapable punctuation character), so markdown-it consumes the escaped colon as literal text before the directive rule sees it; no directive-specific escape logic is involved.
+The inline rule (`src/latex/inline-directive.ts`) only fires at a `:` when: the name is letter-initial (`[A-Za-z][\w-]*`), and it is **immediately** followed by `[content]` and/or `{attrs}`; at least one of the two is required. This is deliberate: it's what keeps ordinary prose colons (`10:30`, `localhost:8080`) from being parsed as directives: a bare `:word` with nothing bracketed after it is left as literal text. To escape a colon that would otherwise start a directive-looking token, use `\:`; this is standard Markdown backslash-escaping (`:` is an escapable punctuation character), so markdown-it consumes the escaped colon as literal text before the directive rule sees it; no directive-specific escape logic is involved.
 
-An inline/leaf/container name that resolves to no registered component in the active template is a hard error (`Unknown component '<name>' at line N` from the composer) — there's no silent passthrough.
+An inline/leaf/container name that resolves to no registered component in the active template is a hard error (`Unknown component '<name>' at line N` from the composer); there's no silent passthrough.
 
-**Form/output contract:** inline components must return inline-safe LaTeX (no paragraph breaks); leaf and container components emit block-level LaTeX. The composer itself doesn't branch on `form` — it just calls `render` for `block.name/params/children` as before, so this is a contract on the component author, not a runtime check.
+**Form/output contract:** inline components must return inline-safe LaTeX (no paragraph breaks); leaf and container components emit block-level LaTeX. The composer itself doesn't branch on `form`; it just calls `render` for `block.name/params/children` as before, so this is a contract on the component author, not a runtime check.
 
 #### The `raw` escape hatch
 
@@ -324,11 +324,11 @@ An inline/leaf/container name that resolves to no registered component in the ac
 Inline raw: :raw[\textbackslash]{format=latex} inline latex.
 ```
 
-Only `format=latex` is honored by druckform's LaTeX pipeline (the raw body is emitted as-is — see `composer.ts` / `tokens-to-latex.ts`, which check `params.format === "latex"`). `format=html` is reserved for a future Obsidian renderer and is **skipped** (emits nothing) by druckform. Reach for `raw` when you need LaTeX the component model genuinely can't express, rather than reaching for `escapeTeX`/`Tex` workarounds in a component.
+Only `format=latex` is honored by druckform's LaTeX pipeline (the raw body is emitted as-is; see `composer.ts` / `tokens-to-latex.ts`, which check `params.format === "latex"`). `format=html` is reserved for a future Obsidian renderer and is **skipped** (emits nothing) by druckform. Reach for `raw` when you need LaTeX the component model genuinely can't express, rather than reaching for `escapeTeX`/`Tex` workarounds in a component.
 
 #### Portability (Obsidian) intent
 
-This directive syntax follows the CommonMark "generic directives" convention — the same one implemented by the micromark/remark-directive ecosystem — rather than a druckform-specific dialect. The motivation is forward compatibility: the same `document.md` source should, in principle, be renderable by a future Obsidian plugin implementing the same convention (live preview / reading mode) without any druckform-specific preprocessing. That plugin does not exist as part of this project; the syntax choice simply keeps the door open.
+This directive syntax follows the CommonMark "generic directives" convention (the same one implemented by the micromark/remark-directive ecosystem) rather than a druckform-specific dialect. The motivation is forward compatibility: the same `document.md` source should, in principle, be renderable by a future Obsidian plugin implementing the same convention (live preview / reading mode) without any druckform-specific preprocessing. That plugin does not exist as part of this project; the syntax choice simply keeps the door open.
 
 ### 3.3 GFM block elements
 
@@ -372,9 +372,9 @@ PlantUML skins: put a `.puml` file in `assets/` and reference it from `style.yam
 
 **Mermaid labels are plain text.** druckform sets `htmlLabels:false`, because the
 SVG→PDF step (`rsvg-convert`/librsvg) cannot render the HTML that Mermaid emits in
-`<foreignObject>` by default — every label would silently disappear otherwise.
+`<foreignObject>` by default; every label would silently disappear otherwise.
 Mermaid labels are rendered as SVG `<text>` instead. **Consequence:** rich HTML
-inside labels (bold, links, `<br>`) is not supported — use plain-text labels.
+inside labels (bold, links, `<br>`) is not supported; use plain-text labels.
 
 **Brand colours** via `diagrams.mermaid.themeVariables` in `style.yaml`, either
 inline:
@@ -396,7 +396,7 @@ diagrams:
 ```
 
 Whenever `themeVariables` are present (inline or via `themeVariablesRef`),
-druckform forces Mermaid's `base` theme — it's the only theme that honours all
+druckform forces Mermaid's `base` theme; it's the only theme that honours all
 variables. `theme` alone (with no `themeVariables`) selects a named Mermaid theme
 (`default`/`forest`/`dark`/`neutral`).
 
@@ -473,7 +473,7 @@ emits: |
 #### Reading frontmatter in the document shell
 
 The document shell receives frontmatter twice: on the `DocumentLayout` payload
-(`element.frontmatter`) and mirrored on `ctx.frontmatter` (same values — either is
+(`element.frontmatter`) and mirrored on `ctx.frontmatter` (same values; either is
 fine to read). A typical title block:
 
 ```ts
@@ -495,14 +495,14 @@ export function render(_p: unknown, _c: string, ctx: RenderCtx, el?: BlockElemen
 }
 ```
 
-(This example omits `componentPreamble` and the engine-core packages for brevity —
+(This example omits `componentPreamble` and the engine-core packages for brevity;
 a real shell must still emit `el.componentPreamble` per [§6.5](#65-overriding-the-document-shell-page-layout).)
 
 ---
 
 ## 4. Styles (`style.yaml`)
 
-A style is **pure design tokens**. The compiler turns tokens into a LaTeX preamble; components reference tokens by name — they never hard-code colors.
+A style is **pure design tokens**. The compiler turns tokens into a LaTeX preamble; components reference tokens by name; they never hard-code colors.
 
 ### 4.1 Anatomy
 
@@ -550,8 +550,8 @@ So token `accent` → color name **and** macro `\druckAccent`; token `blockGap` 
 
 **Font options for variable fonts (bold not rendering).** A font token may be a
 bare string or `{ name, options }`; `options` is spliced as `\setmainfont{name}[options]`.
-This matters for variable fonts — e.g. Noto Sans on macOS ships as a variable-only
-font — which can leave `\bfseries` silently rendering as Regular weight, because
+This matters for variable fonts (e.g. Noto Sans on macOS ships as a variable-only
+font), which can leave `\bfseries` silently rendering as Regular weight, because
 fontspec can't select a distinct Bold instance from a single variable font file.
 Fix it by setting a fontspec option via the token:
 
@@ -567,7 +567,7 @@ which compiles to:
 ```
 
 ⚠️ **There is no `\setsansfont`.** Only `fonts.main` (→ `\setmainfont`) and
-`fonts.mono` (→ `\setmonofont`) are emitted — there is no `fonts.sans` token and no
+`fonts.mono` (→ `\setmonofont`) are emitted; there is no `fonts.sans` token and no
 `\sffamily` configuration. If `fonts.main` is itself a sans-serif font, body text
 inherits it (LaTeX's default family is `\rmfamily`, driven by `\setmainfont`); there
 is no separate mechanism to configure `\sffamily` output.
@@ -589,11 +589,11 @@ interface RenderCtx {
 (`frontmatter`, `templateDir`, and `asset` are covered in [§3.5](#35-frontmatter)
 and [§5.4](#54-template-bundled-assets-ctxasset-ctxtemplatedir).)
 
-`ctx.style` exposes the raw token values as-is from the resolved style —
+`ctx.style` exposes the raw token values as-is from the resolved style:
 `{ colors: Record<string,string>, fonts: { main?: FontSpec, mono?: FontSpec }, spacing: Record<string,string> }`
 (no `druck` prefixing, no macro wrapping). Reach for it when a shell or component
 needs the raw value rather than a LaTeX macro, e.g. `ctx.style.fonts.main` to read
-the configured main font name/options directly — as distinct from `ctx.token(name)`,
+the configured main font name/options directly, as distinct from `ctx.token(name)`,
 which always returns the `\druck<Name>` macro string.
 
 - TS component: `ctx.token("accent")` → the string `\druckAccent` to splice into LaTeX.
@@ -622,7 +622,7 @@ A style color token `accent` compiles to **both**:
 ```
 
 Splicing `ctx.token("accent")` (→ `\druckAccent`) into a `colframe=`/`\rowcolor{}`
-argument breaks — those need the bare **name**.
+argument breaks; those need the bare **name**.
 
 ### 4.4 Token coverage (the one gotcha)
 
@@ -659,9 +659,9 @@ emits: |
 This is required whenever a token is used only in hardcoded `emits`/`preamble` LaTeX
 (e.g. a literal `colframe=druckWarning` baked into `preamble`) rather than through a
 `token`-typed param. **Doctor's token-coverage check does not scan `emits`/`preamble`
-text for `druck<Name>` references** — only param-derived tokens (`token`-typed params,
+text for `druck<Name>` references**: only param-derived tokens (`token`-typed params,
 `tokenRef()` in TS schemas) and declared `requiredTokens` are tracked. A token used
-only in raw LaTeX and never declared this way will silently skip coverage checking —
+only in raw LaTeX and never declared this way will silently skip coverage checking;
 render succeeds even if the style is missing that color, and you only find out from a
 LaTeX-level "undefined color" failure.
 
@@ -685,7 +685,7 @@ Resolution, lowest → highest precedence:
 base.style  →  …each template in the extends chain…  →  leaf.style  →  external --style (if any)
 ```
 
-- Styles **merge down the `extends` chain** (per-token; child wins) — exactly like component defaults.
+- Styles **merge down the `extends` chain** (per-token; child wins), exactly like component defaults.
 - The external `--style` file is now **optional**; when given, it merges on top of the template's style. Omit it and you get the template's own style.
 - Token coverage (§4.4) runs against the **fully merged** effective style.
 
@@ -704,15 +704,15 @@ Two kinds. **Use declarative YAML** for simple "wrap children in an environment"
 
 The recommended inner loop when writing a new component is:
 
-1. **Scaffold** — `druck new component` (or MCP `scaffold_component`) emits boilerplate.
-2. **Doctor** — `druck doctor -t <template>` (or MCP `validate_component`) checks exports, slot/param consistency, and token coverage — no document or style needed.
-3. **Preview** — `druck preview-component` (or MCP `preview_component`) renders the component in isolation.
+1. **Scaffold**: `druck new component` (or MCP `scaffold_component`) emits boilerplate.
+2. **Doctor**: `druck doctor -t <template>` (or MCP `validate_component`) checks exports, slot/param consistency, and token coverage; no document or style needed.
+3. **Preview**: `druck preview-component` (or MCP `preview_component`) renders the component in isolation.
 
-Refer to the [examples gallery](examples-gallery.md) for a working set of reference components, and use the [`druckform-authoring` skill](../claude-plugin/skills/druckform-authoring/SKILL.md) when authoring inside a Claude Code session — it encodes the full contract and automates the loop above.
+Refer to the [examples gallery](examples-gallery.md) for a working set of reference components, and use the [`druckform-authoring` skill](../claude-plugin/skills/druckform-authoring/SKILL.md) when authoring inside a Claude Code session; it encodes the full contract and automates the loop above.
 
 ### Scaffold a component
 
-The fastest way to start is `druck new component`. It emits ready-to-edit boilerplate and — because auto-discovery is on (see [§6.3](#63-the-extends-chain)) — the new file is **registered automatically**; no `template.yaml` edit required.
+The fastest way to start is `druck new component`. It emits ready-to-edit boilerplate and, because auto-discovery is on (see [§6.3](#63-the-extends-chain)), the new file is **registered automatically**; no `template.yaml` edit required.
 
 ```bash
 # TypeScript component (default):
@@ -770,7 +770,7 @@ Interpolation rules for `emits`:
 Notes:
 - A `token` param defaults to its own name if no `default` is given, and **auto-adds that token to `requiredTokens`** (so coverage is checked).
 - `{{accent}}` in the example resolves to `\druckAccent`; the triple-brace `{{{accent}}}` is just `{` + `{{accent}}` (a literal LaTeX brace around the macro).
-- `string` params are always escaped — safe for arbitrary user input.
+- `string` params are always escaped: safe for arbitrary user input.
 
 ### 5.2 TypeScript component (`*.ts`)
 
@@ -854,7 +854,7 @@ export const schema = z.object({
 
 `z` is re-exported from `"@druckform/core"` (the same zod instance the package uses
 internally), so `tokenRef` and `z` can come from one import. `import { z } from "zod";`
-also works — both point at the same package as long as `zod` is resolvable
+also works; both point at the same package as long as `zod` is resolvable
 (see the external-template-directory note above).
 
 `meta.requiredTokens` still works and is unioned with the derived set, so existing
@@ -904,16 +904,16 @@ Rules of thumb:
 Components and the document shell can reference files that ship inside the
 template directory:
 
-- **`ctx.asset(ref)`** — resolves `ref` against the template dir, returns an
+- **`ctx.asset(ref)`**: resolves `ref` against the template dir, returns an
   **absolute** path (safe to use directly in `\includegraphics`), and
   auto-converts `.svg` refs to PDF. Requires the `rsvg-convert` binary for SVG
-  (the same tool the diagram pipeline uses) — a missing binary is a hard error
+  (the same tool the diagram pipeline uses); a missing binary is a hard error
   (`brew install librsvg` on macOS). Resolution is against the **defining**
-  template's dir — i.e. the template that declares the component, which may be
+  template's dir, i.e. the template that declares the component, which may be
   a parent in the `extends` chain, not necessarily the leaf template being
   rendered. SVG→PDF conversions are memoized per render (same source path never
   reconverted twice).
-- **`ctx.templateDir`** — the raw absolute template root, for `\input`, a
+- **`ctx.templateDir`**: the raw absolute template root, for `\input`, a
   bundled `.sty` file, or fontspec `Path=...`.
 
 Logo in the running header (in the `document` shell):
@@ -928,19 +928,19 @@ traversal the same way `resolveAssetPath` does for document-relative assets.
 
 ### 5.5 Component preambles
 
-Each component may export a `preamble` (LaTeX) injected **once** before `\begin{document}`. Identical preambles across components are **deduplicated** (set-based, trimmed). Put `\usepackage{...}` and environment/macro definitions here. (`minted` is forbidden — tectonic runs without shell-escape.)
+Each component may export a `preamble` (LaTeX) injected **once** before `\begin{document}`. Identical preambles across components are **deduplicated** (set-based, trimmed). Put `\usepackage{...}` and environment/macro definitions here. (`minted` is forbidden; tectonic runs without shell-escape.)
 
 ### 5.6 Register the component
 
-**Auto-discovery (recommended):** any file dropped in a template's `components/` directory is registered automatically — no `template.yaml` edit needed:
+**Auto-discovery (recommended):** any file dropped in a template's `components/` directory is registered automatically; no `template.yaml` edit needed:
 
 - **TS component** (`*.ts`): registered under the filename stem (e.g. `banner.ts` → `banner`). The stem must equal `meta.name`; `druck doctor` flags a mismatch.
 - **YAML component** (`*.component.yaml`): registered under its `name:` field.
-- **`block:*` components** are never auto-discovered — they must be registered explicitly.
+- **`block:*` components** are never auto-discovered; they must be registered explicitly.
 
 Explicit `template.yaml` entries always win over auto-discovered files (useful for `defaults:`, partial `extends:` overrides, and tombstones).
 
-**Explicit registration** — needed only when you want to override defaults or use a non-standard path:
+**Explicit registration**: needed only when you want to override defaults or use a non-standard path:
 
 ```yaml
 components:
@@ -999,7 +999,7 @@ Within any template directory, druckform scans the `components/` subdirectory an
 
 - `*.ts` → registered under the filename stem (stem must equal `meta.name`).
 - `*.component.yaml` → registered under the `name:` field declared inside.
-- `block:*` names are **never** auto-registered — they require explicit `template.yaml` entries.
+- `block:*` names are **never** auto-registered; they require explicit `template.yaml` entries.
 
 Explicit `template.yaml` component entries always take precedence over auto-discovered files, so you can still override `defaults:`, use partial `extends:`, or tombstone (`null`) an auto-discovered component from a parent template.
 
@@ -1013,7 +1013,7 @@ Templates linearize **root → leaf** (cycles are detected and rejected). Compon
 - `extends: parent.comp` + `defaults:` → **keeps the parent's source**, merges defaults (child wins).
 - not mentioned → **inherited as-is**.
 
-Real example — `report` extends `base`:
+Real example: `report` extends `base`:
 
 ```yaml
 # templates/report/template.yaml
@@ -1049,10 +1049,10 @@ components:
 ```
 
 Components present in `base` but not mentioned by the child are inherited 1:1.
-Nulling a built-in `block:*` component is **rejected at load time** — those are
+Nulling a built-in `block:*` component is **rejected at load time**; those are
 required by the Markdown renderer.
 
-Full-override example — `fancy` swaps how tables render:
+Full-override example: `fancy` swaps how tables render:
 
 ```yaml
 # template.yaml
@@ -1082,7 +1082,7 @@ Now any document rendered with `--template fancy` uses your table renderer; ever
 
 ### 6.5 Overriding the document shell (page layout)
 
-The whole LaTeX wrapper — document class, geometry, headers/footers, title block — is itself an overrideable component named **`document`** (reserved; shipped by `base`; not invocable from the document body). Override it like any component to control page layout.
+The whole LaTeX wrapper (document class, geometry, headers/footers, title block) is itself an overrideable component named **`document`** (reserved; shipped by `base`; not invocable from the document body). Override it like any component to control page layout.
 
 A `document` override receives a typed `DocumentLayout` payload (the 4th render arg) and must mark where the body goes:
 
@@ -1108,7 +1108,7 @@ export function render(_p: unknown, _c: string, _ctx: RenderCtx, el?: BlockEleme
 }
 ```
 
-Declarative form — same slots, raw:
+Declarative form: same slots, raw:
 
 ```yaml
 name: document
@@ -1123,7 +1123,7 @@ emits: |
   \end{document}
 ```
 
-**Engine-core split (important):** the composer always emits `\documentclass{…}` and the non-overridable engine packages — `fontspec`, `xcolor`, `graphicx`, `hyperref`, `ulem` — **before** your shell. These are output-correctness requirements (fonts, colors, images, links, strikethrough), so a custom `document` can't break them by omission. Your shell owns everything after: it **chooses** the documentclass value (via the payload / a param) but does **not** emit the literal `\documentclass` line, and it places the style/component preambles, page setup, title block, and the `DRUCKFORM_BODY` marker. A shell that omits the body marker is rejected at compose time.
+**Engine-core split (important):** the composer always emits `\documentclass{…}` and the non-overridable engine packages (`fontspec`, `xcolor`, `graphicx`, `hyperref`, `ulem`) **before** your shell. These are output-correctness requirements (fonts, colors, images, links, strikethrough), so a custom `document` can't break them by omission. Your shell owns everything after: it **chooses** the documentclass value (via the payload / a param) but does **not** emit the literal `\documentclass` line, and it places the style/component preambles, page setup, title block, and the `DRUCKFORM_BODY` marker. A shell that omits the body marker is rejected at compose time.
 
 ### 6.6 Validate a template with `druck doctor`
 
@@ -1136,11 +1136,11 @@ druck doctor --template acme --json   # machine-readable LintContract
 
 `doctor` resolves the full `extends` chain and checks:
 
-- **Missing exports** — every registered `.ts` component exports `schema`, `meta`, and `render`.
-- **Declarative slot/param mismatches** — every `{{slot}}` in a declarative component's `emits` refers to a declared param or `children`; unused params are flagged too.
-- **Token drift** — `meta.requiredTokens` entries that are never referenced by `ctx.token()` or a `tokenRef` param in the schema (possible dead declarations or renamed tokens).
-- **Unescaped param interpolation** — TS components that splice `params.*` strings directly into LaTeX without `escapeTeX` or `Tex`.
-- **Document-shell body marker** — a `document` override that doesn't emit `DRUCKFORM_BODY` in its output (caught without running tectonic).
+- **Missing exports**: every registered `.ts` component exports `schema`, `meta`, and `render`.
+- **Declarative slot/param mismatches**: every `{{slot}}` in a declarative component's `emits` refers to a declared param or `children`; unused params are flagged too.
+- **Token drift**: `meta.requiredTokens` entries that are never referenced by `ctx.token()` or a `tokenRef` param in the schema (possible dead declarations or renamed tokens).
+- **Unescaped param interpolation**: TS components that splice `params.*` strings directly into LaTeX without `escapeTeX` or `Tex`.
+- **Document-shell body marker**: a `document` override that doesn't emit `DRUCKFORM_BODY` in its output (caught without running tectonic).
 
 `doctor` exits zero and prints nothing when all checks pass. Any finding exits non-zero. Use it as a lightweight authoring gate in CI or before handing a template off to others.
 
@@ -1152,20 +1152,20 @@ GFM block-level Markdown is rendered by built-in components in the **`base`** te
 
 | Component | Renders | Default preamble |
 |-----------|---------|------------------|
-| `block:heading` | `#`…`######` → `\section`…`\subparagraph` | — |
+| `block:heading` | `#`…`######` → `\section`…`\subparagraph` | none |
 | `block:list` | bullet / ordered / **task** lists | `amssymb` |
 | `block:table` | GFM tables w/ alignment → `tabularx` + `booktabs` | `tabularx`, `booktabs`, `array` |
-| `block:blockquote` | `>` → `quote` | — |
+| `block:blockquote` | `>` → `quote` | none |
 | `block:codeblock` | fenced code → `lstlisting` | `listings` |
 | `block:image` | `![alt](src)` → `\includegraphics` | `adjustbox` |
-| `block:hr` | `---` → `\rule` | — |
+| `block:hr` | `---` → `\rule` | none |
 
 `block:image` resolves each Markdown image `src` against the document's **assets
-root** — the `--assets <dir>` CLI flag (default `"."`; see the [CLI reference](#cli-reference))
-or the ZIP bundle's `assets/` dir over MCP — to an absolute path via `resolveAssetPath`
+root** (the `--assets <dir>` CLI flag, default `"."`; see the [CLI reference](#cli-reference),
+or the ZIP bundle's `assets/` dir over MCP) to an absolute path via `resolveAssetPath`
 before emitting `\includegraphics`. It also caps the image height at
 `\druckImageMaxHeight` (default `0.82\textheight`, overridable per-document or
-per-image via `maxheight=<n>` in the image title — see [§3.4](#34-diagrams)).
+per-image via `maxheight=<n>` in the image title; see [§3.4](#34-diagrams)).
 
 ### 7.1 The `element` payload
 
@@ -1184,7 +1184,7 @@ type BlockElement =
   | { kind: "hr" };
 ```
 
-Pattern for a block override — guard on `kind`, fall back gracefully:
+Pattern for a block override: guard on `kind`, fall back gracefully:
 
 ```ts
 export function render(_p, children, _ctx, element?: BlockElement): string {
@@ -1197,7 +1197,7 @@ export function render(_p, children, _ctx, element?: BlockElement): string {
 ### 7.2 Reserved namespace rules
 
 - User templates **may override** the seven known `block:*` names.
-- User templates **may not invent** new `block:*` names — loading throws:
+- User templates **may not invent** new `block:*` names; loading throws:
   `… uses the reserved 'block:' namespace for unknown component 'block:foo'`.
 - Need a new block-ish component? Give it an ordinary name (no `block:` prefix) and use it via a `:::` fence.
 
@@ -1242,7 +1242,7 @@ emits: |
   \begin{tcolorbox}[colback=,colframe=,title={{title}}]\end{tcolorbox}
 ```
 
-Lint and render — no `--style` needed (the template carries its own; pass `--style` only to override):
+Lint and render: no `--style` needed (the template carries its own; pass `--style` only to override):
 
 ```bash
 druck lint   -t acme --in doc.md
@@ -1250,7 +1250,7 @@ druck render -t acme --in doc.md --out acme.pdf
 druck render -t acme --in doc.md --style client-brand.yaml --out acme.pdf   # optional override
 ```
 
-(Remember: a `token`-typed param like `bg: accent` makes `accent` a *required* token — the effective style must define `colors.accent`.)
+(Remember: a `token`-typed param like `bg: accent` makes `accent` a *required* token; the effective style must define `colors.accent`.)
 
 ---
 
@@ -1281,7 +1281,7 @@ import type {
 ```
 
 (`FontSpec` is a type used inside `StyleTokens`/`StyleConfig` but is not itself
-re-exported from `@druckform/core` — reference it structurally as `{ name: string; options?: string }` or via `NonNullable<StyleTokens["fonts"]["main"]>` (the bare `StyleTokens["fonts"]["main"]` includes `| undefined`).)
+re-exported from `@druckform/core`; reference it structurally as `{ name: string; options?: string }` or via `NonNullable<StyleTokens["fonts"]["main"]>` (the bare `StyleTokens["fonts"]["main"]` includes `| undefined`).)
 
 ---
 
@@ -1291,7 +1291,7 @@ re-exported from `@druckform/core` — reference it structurally as `{ name: str
 
 | Var | Default | Purpose |
 |-----|---------|---------|
-| `DRUCKFORM_TEMPLATES_DIR` | — | extra dir scanned for **user** templates |
+| `DRUCKFORM_TEMPLATES_DIR` | none | extra dir scanned for **user** templates |
 | `DRUCK_ENGINE` | `auto` | execution engine for `render` and `preview-component`: `local`, `docker`, or `auto` (probes for tools; uses Docker if any are missing) |
 | `DRUCK_DOCKER_IMAGE` | `ghcr.io/druckform/druckform:<version>` | Docker image override (where `<version>` is the installed @druckform/core package version) |
 | `DRUCKFORM_JOBS_DIR` | `/work/jobs` | MCP job working dirs |

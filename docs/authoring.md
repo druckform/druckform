@@ -1,14 +1,14 @@
-# Authoring Guide
+# Authoring guide
 
 This guide covers everything you need to write and style druckform documents.
 
 ## Document format
 
-A druckform document is a standard Markdown file (`.md`) with component **directives** — a syntax with three forms distinguished by colon count:
+A druckform document is a standard Markdown file (`.md`) with component **directives**, a syntax with three forms distinguished by colon count:
 
-- **inline** `:name[content]{attrs}` — mid-sentence, must emit inline LaTeX
-- **leaf** `::name[content]{attrs}` — single line, no nested body
-- **container** `:::name{attrs}` … `:::` — a fenced block that can contain further Markdown/components
+- **inline** `:name[content]{attrs}`: mid-sentence, must emit inline LaTeX
+- **leaf** `::name[content]{attrs}`: single line, no nested body
+- **container** `:::name{attrs}` … `:::`: a fenced block that can contain further Markdown/components
 
 ```markdown
 # Document Title
@@ -58,7 +58,7 @@ or call the `list_components` MCP tool.
 
 ## Directive components
 
-druckform components are invoked with **generic directives** — a Markdown convention with three forms, distinguished by how many colons open them:
+druckform components are invoked with **generic directives**, a Markdown convention with three forms, distinguished by how many colons open them:
 
 | Form | Syntax | Use for |
 |------|--------|---------|
@@ -68,10 +68,10 @@ druckform components are invoked with **generic directives** — a Markdown conv
 
 A component declares which form it is via `meta.form: "inline" | "leaf" | "container"` (default `"container"` when omitted).
 
-**Attribute model** — the `{...}` block accepts, space-separated:
-- `#id` — sets an id; if given more than once, the **last one wins**.
-- `.class` — adds a class; repeated `.class` tokens **combine** (space-joined).
-- `key="value"` / `key='value'` / `key=value` (bare, no whitespace) — an attribute; a bare `key` with no `=` is shorthand for `key="true"`.
+**Attribute model**: the `{...}` block accepts, space-separated:
+- `#id`: sets an id; if given more than once, the **last one wins**.
+- `.class`: adds a class; repeated `.class` tokens **combine** (space-joined).
+- `key="value"` / `key='value'` / `key=value` (bare, no whitespace): an attribute; a bare `key` with no `=` is shorthand for `key="true"`.
 
 ```markdown
 :::infobox{#note .highlight accent="warning"}
@@ -79,11 +79,11 @@ Shown with an id, a class, and a param.
 :::
 ```
 
-**Inline firing rule:** an inline directive only fires when `:` is immediately followed by a letter-initial name (`[A-Za-z][\w-]*`) *and* at least one of `[content]` / `{attrs}` follows immediately after the name. This is what keeps ordinary prose colons (`10:30`, `localhost:8080`) untouched — a bare `:word` with no bracket/brace never fires. To write a literal colon immediately before what would otherwise look like a directive name, escape it as `\:` (standard Markdown backslash-escaping — `:` is an escapable punctuation character, so the escaped colon is consumed as literal text and never reaches the directive rule). An inline/leaf/container name that isn't a registered component is an error (unregistered names do not silently pass through).
+**Inline firing rule:** an inline directive only fires when `:` is immediately followed by a letter-initial name (`[A-Za-z][\w-]*`) *and* at least one of `[content]` / `{attrs}` follows immediately after the name. This is what keeps ordinary prose colons (`10:30`, `localhost:8080`) untouched: a bare `:word` with no bracket/brace never fires. To write a literal colon immediately before what would otherwise look like a directive name, escape it as `\:` (standard Markdown backslash-escaping: `:` is an escapable punctuation character, so the escaped colon is consumed as literal text and never reaches the directive rule). An inline/leaf/container name that isn't a registered component is an error (unregistered names do not silently pass through).
 
 ## Directive components: the `raw` escape hatch
 
-`raw` is a reserved directive name that emits its body **verbatim** — unescaped — into the LaTeX output, for the rare case where you need LaTeX the component model can't express:
+`raw` is a reserved directive name that emits its body **verbatim** (unescaped) into the LaTeX output, for the rare case where you need LaTeX the component model can't express:
 
 ```markdown
 :::raw{format=latex}
@@ -95,7 +95,7 @@ It also works as a leaf or inline form: `::raw[...]{format=latex}`, `:raw[...]{f
 
 ## Portability
 
-The directive syntax follows the CommonMark "generic directives" convention (the same one implemented by micromark/remark-directive), rather than a druckform-specific dialect. The intent is that the same `document.md` source can, in the future, also be opened and live-previewed by an Obsidian plugin implementing the same convention — that plugin is not part of druckform, but the document format is written to not preclude it.
+The directive syntax follows the CommonMark "generic directives" convention (the same one implemented by micromark/remark-directive), rather than a druckform-specific dialect. The intent is that the same `document.md` source can, in the future, also be opened and live-previewed by an Obsidian plugin implementing the same convention: that plugin is not part of druckform, but the document format is written to not preclude it.
 
 ## Built-in components
 
@@ -113,7 +113,7 @@ Body text. **Markdown** is supported. Nested components are allowed.
 
 | Param | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `title` | string | yes | — | Title shown in the box header |
+| `title` | string | yes | none | Title shown in the box header |
 | `accent` | token | no | `accent` | Style token name for the border/header colour |
 
 ### `callout` (template: report, extends base)
@@ -128,12 +128,12 @@ Body text.
 
 | Param | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `title` | string | yes | — | Title shown in the callout header |
+| `title` | string | yes | none | Title shown in the callout header |
 | `variant` | `info` \| `warn` \| `danger` | no | `info` | Visual style variant |
 
 ## Diagrams
 
-Embed Mermaid and PlantUML diagrams as fenced code blocks — they are pre-rendered to PDF automatically.
+Embed Mermaid and PlantUML diagrams as fenced code blocks. They are pre-rendered to PDF automatically.
 
 **Mermaid:**
 
@@ -165,7 +165,7 @@ Templates define which components are available. Use `druck templates --json` to
 
 | Name | Extends | Description |
 |------|---------|-------------|
-| `base` | — | Foundational components for all documents |
+| `base` | none | Foundational components for all documents |
 | `report` | `base` | Extends base with a variant-styled callout |
 
 The `report` template inherits all components from `base` and adds or overrides its own. Template extensions are transitive.
@@ -199,8 +199,8 @@ diagrams:
 - All `tokens.*` sub-blocks are optional; the render engine applies defaults for missing tokens.
 - Additional token names (e.g. `infoboxBg`) are only meaningful if a component reads them via the style schema.
 - The `diagrams` block is entirely optional.
-- There is no `fonts.sans` / `\setsansfont` — only `fonts.main` (→ `\setmainfont`) and `fonts.mono` (→ `\setmonofont`) are supported.
-- A font can also be `{ name, options }` instead of a bare string, e.g. `main: { name: "Noto Sans", options: "AutoFakeBold=2.2" }` — useful for variable fonts where `\bfseries` would otherwise render as Regular weight. See `docs/extending-druckform.md` §4.1 for details.
+- There is no `fonts.sans` / `\setsansfont`: only `fonts.main` (→ `\setmainfont`) and `fonts.mono` (→ `\setmonofont`) are supported.
+- A font can also be `{ name, options }` instead of a bare string, e.g. `main: { name: "Noto Sans", options: "AutoFakeBold=2.2" }`, useful for variable fonts where `\bfseries` would otherwise render as Regular weight. See `docs/extending-druckform.md` §4.1 for details.
 
 ## Bundle layout
 

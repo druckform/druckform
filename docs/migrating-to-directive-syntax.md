@@ -5,7 +5,7 @@
 
 ## What changed (one sentence)
 
-Component blocks moved from the bespoke `::: name key="value"` form to the generic-directives form `:::name{key="value"}` — the space after the colons is gone and attributes now live inside a `{ … }` block. Two new lightweight forms (inline and leaf) were also added, but adopting them is optional.
+Component blocks moved from the bespoke `::: name key="value"` form to the generic-directives form `:::name{key="value"}`: the space after the colons is gone and attributes now live inside a `{ … }` block. Two new lightweight forms (inline and leaf) were also added; adopting them is optional.
 
 ## The ONE required transformation (container components)
 
@@ -15,7 +15,7 @@ Every **opening** component fence must change. Rule:
   - Remove the space(s) between `:::` and the component name.
   - Wrap the attribute string (everything after the name) in a single `{ … }`.
   - The attribute text itself is unchanged: `key="value"` pairs, space-separated, stay exactly as they were.
-- The **closing** fence — a line that is just `:::` — is **unchanged**.
+- The **closing** fence (a line that is just `:::`) is **unchanged**.
 - Nested components: apply the same rule to each opening line at every depth.
 
 ### Examples
@@ -58,19 +58,19 @@ Only opening fences (3 colons, a space, then a name) change; bare `:::` closers 
 - Replace with: `:::$1{$2}`
 - Do **not** touch lines that are exactly `:::` (closers).
 
-Prefer editing with judgment over blind sed — verify each block visually after transforming.
+Prefer editing with judgment over blind sed; verify each block visually after transforming.
 
 ## What you do NOT need to change
 
-- **Frontmatter** (the `--- … ---` block), headings, paragraphs, lists, tables, code fences, blockquotes, links — all ordinary Markdown is unchanged.
-- **Images** `![alt](src "title")` — unchanged. (Note: a `maxheight=<fraction>` directive in the image title, e.g. `![logo](logo.pdf "maxheight=0.4")`, caps its height; that's a feature, not a required change.)
-- **Diagram fences** ` ```mermaid ` / ` ```plantuml ` — unchanged. (An optional `maxheight=` info-string is available: ` ```mermaid maxheight=0.5 `.)
-- Prose colons (`10:30`, `https://…`, `see 4:1`) are safe — inline directives only fire on `:name[` or `:name{`.
+- **Frontmatter** (the `--- … ---` block), headings, paragraphs, lists, tables, code fences, blockquotes, links: all ordinary Markdown is unchanged.
+- **Images** `![alt](src "title")`: unchanged. (Note: a `maxheight=<fraction>` directive in the image title, e.g. `![logo](logo.pdf "maxheight=0.4")`, caps its height; that's a feature, not a required change.)
+- **Diagram fences** ` ```mermaid ` / ` ```plantuml `: unchanged. (An optional `maxheight=` info-string is available: ` ```mermaid maxheight=0.5 `.)
+- Prose colons (`10:30`, `https://…`, `see 4:1`) are safe: inline directives only fire on `:name[` or `:name{`.
 
 ## Optional: new capabilities (use only if wanted)
 
 - **Attributes** now accept `#id` and `.class` in the brace block too: `:::infobox{#intro .highlight title="Note"}`.
-- **Inline components** (mid-sentence): `:name[content]{attrs}` — e.g. `Status: :badge[NEW]{tone=warn}.` Only fires for components whose `form` is `inline`.
+- **Inline components** (mid-sentence): `:name[content]{attrs}`, e.g. `Status: :badge[NEW]{tone=warn}.` Only fires for components whose `form` is `inline`.
 - **Leaf components** (own line, no body): `::name[content]{attrs}`.
 - **Raw passthrough** (escape hatch for LaTeX the component model can't express): `:::raw{format=latex}` … `:::` emits its body verbatim (unescaped); inline `:raw[\LaTeX{}]{format=latex}` and leaf `::raw[…]{format=latex}` too.
 - To write a literal colon that would otherwise start an inline directive, escape it: `\:` (standard Markdown backslash-escaping).

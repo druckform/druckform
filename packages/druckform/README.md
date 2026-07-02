@@ -1,8 +1,8 @@
 # @druckform/core
 
-**Druckform** — from the German *Druckform*, the composed printing *forme*: the plate of set type and layout, locked and ready for the press to ink onto paper. This tool assembles that forme for you: you write Markdown, druckform composes it with a **style** (colors, fonts, spacing) and a **template** (a set of components) into LaTeX, then presses it through [Tectonic](https://tectonic-typesetting.github.io/) into a polished PDF.
+**Druckform**: from the German *Druckform*, the composed printing *forme*, the plate of set type and layout, locked and ready for the press to ink onto paper. This tool assembles that forme for you: you write Markdown, druckform composes it with a **style** (colors, fonts, spacing) and a **template** (a set of components) into LaTeX, then presses it through [Tectonic](https://tectonic-typesetting.github.io/) into a PDF.
 
-`@druckform/core` is the render engine and its command-line interface — the `druck` binary (also aliased as `druckform`).
+`@druckform/core` is the render engine and its command-line interface, the `druck` binary (also aliased as `druckform`).
 
 ```
 Markdown ──▶ parse ──▶ compose (style + template) ──▶ LaTeX ──▶ Tectonic ──▶ PDF
@@ -14,7 +14,7 @@ Markdown ──▶ parse ──▶ compose (style + template) ──▶ LaTeX �
 npm install -g @druckform/core
 ```
 
-Requires Node.js ≥ 22. Rendering shells out to **Tectonic** (LaTeX) and, for diagrams, to Graphviz, a JRE (PlantUML), Chromium (Mermaid), and librsvg. You don't have to install those yourself — `druck` can relay the render into the prebuilt Docker image automatically (see [Execution engines](#execution-engines)). For a zero-install workflow, use the image directly:
+Requires Node.js ≥ 22. Rendering shells out to **Tectonic** (LaTeX) and, for diagrams, to Graphviz, a JRE (PlantUML), Chromium (Mermaid), and librsvg. You don't have to install those yourself: `druck` can relay the render into the prebuilt Docker image automatically (see [Execution engines](#execution-engines)). For a zero-install workflow, use the image directly:
 
 ```bash
 docker run --rm -v "$(pwd):/work" ghcr.io/druckform/druckform:latest \
@@ -39,7 +39,7 @@ A document is Markdown with optional YAML frontmatter and `:::` component direct
 
 ## Rendering with an AI agent
 
-Druckform is designed to be driven by a coding agent (e.g. Claude Code) — the whole surface is discoverable and every command emits a stable JSON contract.
+Druckform is designed to be driven by a coding agent (e.g. Claude Code). The whole surface is discoverable and every command emits a stable JSON contract.
 
 **Recommended: the Claude Code plugin.** It installs a skill plus a Docker-backed server, so the agent renders with no local LaTeX toolchain:
 
@@ -62,20 +62,20 @@ druck render --template report --in doc.md --style style.yaml --out out.pdf --js
 
 `druck render` and `druck preview-component` choose where the render actually runs:
 
-- `--engine local` — use the tools installed on this machine.
-- `--engine docker` — relay the command into a container (default `ghcr.io/druckform/druckform:<version>`, override with `DRUCK_DOCKER_IMAGE`).
-- `--engine auto` *(default)* — probe for the local tools; run locally if all are present, otherwise relay to Docker. Set `DRUCK_ENGINE=local|docker|auto` to change the default without a flag.
+- `--engine local`: use the tools installed on this machine.
+- `--engine docker`: relay the command into a container (default `ghcr.io/druckform/druckform:<version>`, override with `DRUCK_DOCKER_IMAGE`).
+- `--engine auto` *(default)*: probe for the local tools; run locally if all are present, otherwise relay to Docker. Set `DRUCK_ENGINE=local|docker|auto` to change the default without a flag.
 
 Paths are mounted identically inside the container, so `--in`/`--out`/`--style`/`--assets` need no rewriting. All other commands (`templates`, `components`, `lint`, `doctor`, `new`) always run locally.
 
 ## Documentation
 
-- [Authoring guide](https://github.com/druckform/druckform/blob/main/docs/authoring.md) — document format, components, styles, templates
-- [Extending guide](https://github.com/druckform/druckform/blob/main/docs/extending-druckform.md) — the full developer surface: CLI, MCP, authoring & overriding components/templates/styles
+- [Authoring guide](https://github.com/druckform/druckform/blob/main/docs/authoring.md): document format, components, styles, templates
+- [Extending guide](https://github.com/druckform/druckform/blob/main/docs/extending-druckform.md): the full developer surface: CLI, MCP, authoring and overriding components/templates/styles
 - [Examples gallery](https://github.com/druckform/druckform/blob/main/docs/examples-gallery.md)
 
 ## Related packages
 
-- **[@druckform/mcp](https://www.npmjs.com/package/@druckform/mcp)** — a Model Context Protocol server that exposes this engine to MCP-capable agents.
+- **[@druckform/mcp](https://www.npmjs.com/package/@druckform/mcp)**: a Model Context Protocol server that exposes this engine to MCP-capable agents.
 
 MIT © druckform · [github.com/druckform/druckform](https://github.com/druckform/druckform)

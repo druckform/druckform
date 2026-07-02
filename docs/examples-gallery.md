@@ -1,4 +1,4 @@
-# Examples Gallery
+# Examples gallery
 
 The `examples` template ships three canonical, copy-pasteable components that cover the most common authoring patterns. Each demonstrates a different aspect of the component contract.
 
@@ -6,7 +6,7 @@ To use these components as a starting point, copy the relevant file into your ow
 
 ---
 
-## callout — params + children + token declaration
+## callout: params, children, and token declaration
 
 Demonstrates: accepting named params, rendering children, and declaring required style tokens via `meta.requiredTokens`.
 
@@ -43,9 +43,9 @@ ${raw(children)}
 
 ---
 
-## document — titled A4 document shell override
+## document: titled A4 document shell override
 
-Demonstrates: overriding the `document` component to control geometry, preamble placement, and the title block. The shell **must** emit `DRUCKFORM_BODY` — the engine replaces this placeholder with the rendered body. It must **not** emit `\documentclass` (the engine injects that).
+Demonstrates: overriding the `document` component to control geometry, preamble placement, and the title block. The shell **must** emit `DRUCKFORM_BODY`: the engine replaces this placeholder with the rendered body. It must **not** emit `\documentclass` (the engine injects that).
 
 ```ts
 import type { BlockElement, DocumentLayout, RenderCtx } from "@druckform/core";
@@ -78,7 +78,7 @@ export function render(
 
 ---
 
-## fancy-table — `block:table` structured element override
+## fancy-table: `block:table` structured element override
 
 Demonstrates: overriding a reserved `block:` component that receives a structured `BlockElement` payload instead of children. The component reads `element.alignments`, `element.header`, and `element.rows` to produce a `tabularx` table with booktabs rules.
 
