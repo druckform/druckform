@@ -2,7 +2,7 @@
 
 | Secret | Used by | How to obtain |
 |---|---|---|
-| `NPM_TOKEN` | release.yml | npm **automation** token with publish access to the `@druckform` org — npmjs.com → Access Tokens → Generate → Automation. Exposed to `changeset publish` as `NODE_AUTH_TOKEN`. |
+| `NPM_TOKEN` | release.yml | npm **automation** token with publish access to the `@druckform` org — npmjs.com → Access Tokens → Generate → Automation. Passed to `changesets/action` **as the `NPM_TOKEN` env var** (it writes `.npmrc` from it). If this is missing, the action falls back to OIDC trusted publishing, which is not configured and fails. |
 | `TURBO_TOKEN` | ci.yml, release.yml | Turborepo remote cache — create at [turbo.build](https://turbo.build/repo/docs/core-concepts/remote-caching) or leave unset to skip caching |
 | `TURBO_TEAM` | ci.yml, release.yml | Your Turborepo team slug (omit if using personal token) |
 

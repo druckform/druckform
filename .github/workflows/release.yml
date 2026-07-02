@@ -56,10 +56,14 @@ jobs:
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # setup-node wrote an .npmrc that reads NODE_AUTH_TOKEN; `changeset publish`
-          # (→ npm publish) authenticates with it. Scoped packages publish publicly
-          # via each package's publishConfig.access=public + .changeset access:public.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # changesets/action reads NPM_TOKEN to write ~/.npmrc and authenticate
+          # via classic token auth. The env var MUST be named NPM_TOKEN: if it is
+          # absent while id-token:write is granted, the action silently falls back
+          # to npm OIDC trusted publishing — which is NOT configured for these
+          # packages and fails the first publish with a bogus EINVALIDTAGNAME.
+          # Scoped packages publish publicly via publishConfig.access=public +
+          # .changeset access:public.
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # Only push Docker image when packages were actually published
       - name: Log in to GHCR
