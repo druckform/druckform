@@ -1,11 +1,67 @@
 # Druckform
 
-Convert AI-authored Markdown into styled PDFs via LaTeX. Two packages in a TypeScript monorepo, distributed as a Docker image and on npm.
+Druckform turns Markdown into styled, print-ready PDFs by way of LaTeX. It exists for a specific situation: a document gets authored by an AI agent (usually Claude), and it needs to come out looking like a properly typeset document rather than a plain Markdown export.
 
-- **`@druckform/core`**: render engine CLI (`druck` / `druckform` binaries)
-- **`@druckform/mcp`**: MCP server adapter for Claude Code
+The name is German. A *Druckform* is the printing forme, the locked-up block of type and images that a letterpress actually prints from. It is the last thing you assemble before you pull a proof. That is more or less the job here: take loose Markdown and assemble the finished thing you hand over.
 
-## Quick start (Docker)
+There are two ways to use it:
+
+- **Through Claude**, which is the common case. The Claude Code plugin adds a skill that drives the `druck` CLI, handling the whole author, lint, render loop. You describe the document, Claude writes the Markdown and renders it.
+- **From the command line**, if you would rather run the render engine yourself or wire it into CI.
+
+Under the hood it is two packages in a TypeScript monorepo, shipped as a Docker image and on npm:
+
+- **`@druckform/core`**: the render engine and CLI (`druck` / `druckform` binaries)
+- **`@druckform/mcp`**: an MCP server adapter for Claude Code (experimental, unstable for now)
+
+## Contents
+
+- [Using with Claude Code](#using-with-claude-code)
+- [Install and run with npm](#install-and-run-with-npm)
+- [Running with Docker](#running-with-docker)
+- [CLI reference](#cli-reference)
+- [Documentation](#documentation)
+- [Development](#development)
+- [Testing the CLI locally with Claude Code](#testing-the-cli-locally-with-claude-code)
+
+## Using with Claude Code
+
+This is the intended way to use Druckform day to day. Install the Druckform Claude Code plugin:
+
+```
+/plugin marketplace add druckform/druckform
+/plugin install druckform@druckform
+```
+
+This adds the `/druckform:druckform` skill, which gives Claude the authoring workflow and shells out to the `druck` CLI to do the actual rendering. From there you can just ask Claude to produce a document and it handles the render.
+
+There is also an `@druckform/mcp` server, but it is an experimental test for now. The skill plus CLI is the path to use.
+
+**Requirements:** the `druck` CLI on your `PATH` (see [Install and run with npm](#install-and-run-with-npm)). The CLI uses Docker as its rendering backend automatically, so you do not need to install the LaTeX toolchain yourself.
+
+See [docs/authoring.md](docs/authoring.md) for the document format and [the skill](claude-plugin/skills/druckform/SKILL.md) for the MCP workflow.
+
+## Install and run with npm
+
+To get the CLI on its own, install both packages globally:
+
+```bash
+npm install -g @druckform/core @druckform/mcp
+```
+
+That puts the `druck` (and `druckform`) binary on your `PATH`. Render a document with:
+
+```bash
+druck render --template base --style style.yaml --in document.md --out out.pdf
+```
+
+The `--template` flag is optional; it falls back to the `template:` value in the document's frontmatter. To start the MCP server for a Claude Code instance instead, run `druck mcp`.
+
+This route requires Node.js ≥ 22. For the actual rendering, the CLI uses Docker as a backend automatically, so you do not need to install the LaTeX toolchain (Tectonic, PlantUML, Graphviz, mermaid, librsvg) yourself. If you would rather render fully locally without Docker, install those tools and see [System dependencies](#system-dependencies).
+
+## Running with Docker
+
+You can also call the Docker image directly, without installing the CLI. This is essentially what the CLI does for you under the hood, and it is handy for CI or one-off renders:
 
 ```bash
 # Render a document
@@ -18,21 +74,6 @@ docker run --rm \
 Mount your working directory to `/work`. The `--template`, `--style`, `--in`, and `--out` paths should be absolute (inside the container).
 
 See [docs/authoring.md](docs/authoring.md) for the document format and available components.
-
-## Using with Claude Code
-
-Install the druckform Claude Code plugin:
-
-```
-/plugin marketplace add druckform/druckform
-/plugin install druckform@druckform
-```
-
-This auto-configures the druckform MCP server (via Docker) and adds the `/druckform:druckform` skill.
-
-**Requirements:** Docker must be running. curl and zip must be available in your session PATH.
-
-See [docs/authoring.md](docs/authoring.md) for the document format and [the skill](claude-plugin/skills/druckform/SKILL.md) for the MCP workflow.
 
 ## CLI reference
 
@@ -51,16 +92,6 @@ druck mcp      # start MCP + HTTP server on stdio
 
 Use `--json` to get machine-readable output on stdout.
 
-## npm install
-
-```bash
-npm install -g @druckform/core @druckform/mcp
-```
-
-Requires Node.js ≥ 22 and system dependencies: Tectonic (LaTeX), JRE (PlantUML), Graphviz, Chromium (mermaid), and librsvg2.
-
-Use the Docker image unless you need to run in a CI environment that already provides these tools.
-
 ## Documentation
 
 - [Authoring guide](docs/authoring.md): document format, components, styles, templates
@@ -78,7 +109,7 @@ Requires pnpm ≥ 9, Node.js ≥ 22.
 
 ## Testing the CLI locally with Claude Code
 
-To try your local build against a separate Claude Code instance, instead of the published Docker image wired up by the plugin, point Claude at the freshly built CLI's MCP server.
+This section covers the experimental MCP server, not the skill plus CLI path that the shipped plugin uses. To try your local build's MCP server against a separate Claude Code instance, instead of the published Docker image, point Claude at the freshly built CLI's MCP server.
 
 1. **Build the packages** so the CLI binary exists:
 
@@ -122,7 +153,7 @@ To try your local build against a separate Claude Code instance, instead of the 
    mkdir -p .claude/skills
    ln -s /ABS/PATH/druckform/claude-plugin/skills/druckform .claude/skills/druckform
 
-   # — or — user-level (all projects)
+   # or, for user-level (all projects)
    mkdir -p ~/.claude/skills
    ln -s /ABS/PATH/druckform/claude-plugin/skills/druckform ~/.claude/skills/druckform
    ```
@@ -150,7 +181,7 @@ ln -sf /ABS/PATH/druckform/packages/druckform/dist/cli.js ~/.local/bin/druck
 
 **Troubleshooting `ENOENT … mkdir '/work/jobs/...'`:** the server is using its container default job directory. Set `DRUCKFORM_JOBS_DIR` to a writable local path (`mkdir -p ~/.druckform/jobs` first), as shown in step 2.
 
-> **The MCP server only reads its env/PATH when it launches.** After changing the config (`DRUCK_BIN`, port) or the PATH, you must reconnect the server: `/mcp` → reconnect, or restart the Claude session. Retrying a failed tool call reuses the same already-running server and will keep failing. Note that a Claude instance started from the macOS GUI app may not inherit your shell `PATH` (so `~/.local/bin` won't be visible). Launch `claude` from a terminal, or rely on the absolute `DRUCK_BIN`.
+> **The MCP server only reads its env/PATH when it launches.** After changing the config (`DRUCK_BIN`, port) or the PATH, you must reconnect the server: open `/mcp` and reconnect, or restart the Claude session. Retrying a failed tool call reuses the same already-running server and will keep failing. Note that a Claude instance started from the macOS GUI app may not inherit your shell `PATH` (so `~/.local/bin` won't be visible). Launch `claude` from a terminal, or rely on the absolute `DRUCK_BIN`.
 
 ### System dependencies
 
@@ -159,11 +190,11 @@ Rendering shells out to external tools, so a local (non-Docker) setup needs thes
 | Tool                      | Used for                    | Binary           |
 | ------------------------- | --------------------------- | ---------------- |
 | Node.js ≥ 22, pnpm ≥ 9    | build & run                 | `node`, `pnpm`   |
-| Tectonic                  | LaTeX → PDF                 | `tectonic`       |
+| Tectonic                  | LaTeX to PDF                | `tectonic`       |
 | JRE (Java) + PlantUML jar | PlantUML diagrams           | `java`           |
 | Graphviz                  | PlantUML layout             | `dot`            |
 | mermaid-cli               | Mermaid diagrams            | `mmdc`           |
-| librsvg                   | SVG → PDF conversion        | `rsvg-convert`   |
+| librsvg                   | SVG to PDF conversion       | `rsvg-convert`   |
 | curl, zip                 | upload the document bundle  | `curl`, `zip`    |
 
 On macOS with Homebrew:
