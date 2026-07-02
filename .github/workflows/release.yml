@@ -16,12 +16,7 @@ jobs:
       contents: write       # create release commits + tags
       pull-requests: write  # open/update Version PRs
       packages: write       # push to GHCR
-      # NOTE: intentionally NO `id-token: write`. Granting it lets changesets/action
-      # pick npm OIDC trusted publishing when NPM_TOKEN is absent — which, for these
-      # unconfigured packages, fails the publish with a bogus "EINVALIDTAGNAME
-      # index.js.map" (a mangled provenance subject list). Without id-token, OIDC is
-      # unavailable, npm provenance is never attempted, and publishing always uses
-      # classic NPM_TOKEN auth. Docker provenance/sbom attestations do not need it.
+      id-token: write       # OIDC trusted publishing to npm (tokenless) + provenance
 
     steps:
       - name: Checkout
@@ -42,9 +37,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22            # resolves to latest 22.x (>= 22.14, required for OIDC)
           cache: pnpm
-          registry-url: https://registry.npmjs.org
+
+      # OIDC trusted publishing requires npm >= 11.5.1; the runner ships 10.9.x.
+      # pnpm publish delegates to the system npm CLI, so upgrading npm here makes
+      # `pnpm changeset publish` authenticate via OIDC (no token needed).
+      - name: Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@11
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -65,14 +65,12 @@ jobs:
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # changesets/action reads NPM_TOKEN to write ~/.npmrc and authenticate
-          # via classic token auth. The env var MUST be named NPM_TOKEN: if it is
-          # absent while id-token:write is granted, the action silently falls back
-          # to npm OIDC trusted publishing — which is NOT configured for these
-          # packages and fails the first publish with a bogus EINVALIDTAGNAME.
-          # Scoped packages publish publicly via publishConfig.access=public +
-          # .changeset access:public.
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # No NPM_TOKEN on purpose: with id-token:write + npm >= 11.5.1, changesets
+          # (via pnpm → npm) authenticates through OIDC trusted publishing. Each
+          # package must have a trusted publisher configured on npmjs.com (repo
+          # druckform/druckform, workflow release.yml). Publishes public via
+          # publishConfig.access=public + .changeset access:public; provenance is
+          # generated automatically under OIDC.
 
       # Only push Docker image when packages were actually published
       - name: Log in to GHCR
