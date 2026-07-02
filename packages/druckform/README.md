@@ -1,8 +1,10 @@
 # @druckform/core
 
-**Druckform**: from the German *Druckform*, the composed printing *forme*, the plate of set type and layout, locked and ready for the press to ink onto paper. This tool assembles that forme for you: you write Markdown, druckform composes it with a **style** (colors, fonts, spacing) and a **template** (a set of components) into LaTeX, then presses it through [Tectonic](https://tectonic-typesetting.github.io/) into a PDF.
+Druckform turns Markdown into styled, print-ready PDFs by way of LaTeX. It exists for one situation in particular: a document gets written by an AI agent (usually Claude) and needs to come out looking properly typeset, not like a plain Markdown export.
 
-`@druckform/core` is the render engine and its command-line interface, the `druck` binary (also aliased as `druckform`).
+The name is German. A *Druckform* is the printing forme, the locked-up block of type and images that a letterpress actually prints from, the last thing you assemble before you pull a proof. That is roughly the job here: you hand it a **style** (colors, fonts, spacing) and a **template** (a set of components), and it composes your Markdown into LaTeX and presses that through [Tectonic](https://tectonic-typesetting.github.io/) into a PDF.
+
+`@druckform/core` is that engine and its command-line tool, the `druck` binary (also aliased as `druckform`).
 
 ```
 Markdown ──▶ parse ──▶ compose (style + template) ──▶ LaTeX ──▶ Tectonic ──▶ PDF
@@ -41,7 +43,7 @@ A document is Markdown with optional YAML frontmatter and `:::` component direct
 
 Druckform is designed to be driven by a coding agent (e.g. Claude Code). The whole surface is discoverable and every command emits a stable JSON contract.
 
-**Recommended: the Claude Code plugin.** It installs a skill plus a Docker-backed server, so the agent renders with no local LaTeX toolchain:
+**Recommended: the Claude Code plugin.** It adds a skill that drives the `druck` CLI, which renders through Docker automatically, so the agent needs no local LaTeX toolchain:
 
 ```
 /plugin marketplace add druckform/druckform
@@ -76,6 +78,6 @@ Paths are mounted identically inside the container, so `--in`/`--out`/`--style`/
 
 ## Related packages
 
-- **[@druckform/mcp](https://www.npmjs.com/package/@druckform/mcp)**: a Model Context Protocol server that exposes this engine to MCP-capable agents.
+- **[@druckform/mcp](https://www.npmjs.com/package/@druckform/mcp)**: a Model Context Protocol server that exposes this engine to MCP-capable agents (experimental; the Claude Code plugin uses the skill and CLI, not this server).
 
 MIT © druckform · [github.com/druckform/druckform](https://github.com/druckform/druckform)

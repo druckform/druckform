@@ -1,19 +1,21 @@
 # @druckform/mcp
 
-**Druckform** comes from the German *Druckform*, the composed printing *forme*: the plate of set type and layout, locked and ready for the press to ink onto paper. Druckform turns AI-authored Markdown into typeset PDFs. You write Markdown, and it composes your content with a **style** and a **template** into LaTeX, then presses it through [Tectonic](https://tectonic-typesetting.github.io/) into a PDF.
+Druckform turns Markdown into styled, print-ready PDFs by way of LaTeX, for the case where an AI agent writes the document and it needs to look properly typeset rather than like a plain Markdown export. The name is German: a *Druckform* is the printing forme, the locked-up block of type a letterpress prints from, the last thing you assemble before you pull a proof.
 
-`@druckform/mcp` is the **[Model Context Protocol](https://modelcontextprotocol.io/) server** that lets AI agents render documents through druckform. It wraps the [`@druckform/core`](https://www.npmjs.com/package/@druckform/core) engine as MCP tools, with an HTTP upload/download flow for moving files in and out of the render sandbox.
+`@druckform/mcp` is a **[Model Context Protocol](https://modelcontextprotocol.io/) server** that hands that job to an agent. It wraps the [`@druckform/core`](https://www.npmjs.com/package/@druckform/core) engine as MCP tools, with an HTTP upload/download flow for getting files in and out of the render sandbox.
+
+> **Status: experimental and unstable.** For rendering with Claude Code, use the plugin (skill + `druck` CLI). This server is for custom MCP integrations and is still changing.
 
 ## Do you need this package?
 
-Usually not directly. The easiest way for an agent to render with druckform is the **Claude Code plugin**, which wires up a Docker-backed MCP server (no local LaTeX toolchain, no manual setup):
+Usually not. For rendering with Claude Code, use the **plugin**: it adds a skill that drives the `druck` CLI (with Docker as the rendering backend) and does not use this MCP server.
 
 ```
 /plugin marketplace add druckform/druckform
 /plugin install druckform@druckform
 ```
 
-Install `@druckform/mcp` yourself when you're **integrating druckform into your own MCP host / agent**, or running the server outside Docker.
+Install `@druckform/mcp` yourself only if you're **integrating druckform into your own MCP host**, or experimenting with the MCP surface directly.
 
 ## Run the server
 
