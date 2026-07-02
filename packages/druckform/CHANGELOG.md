@@ -1,5 +1,11 @@
 # @druckform/core
 
+## 0.2.1
+
+### Patch Changes
+
+- 5cef262: Verify the OIDC trusted-publishing release pipeline (no functional changes).
+
 ## 0.2.0
 
 ### Minor Changes
