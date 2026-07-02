@@ -8,11 +8,13 @@ import { previewComponentCommand } from "./commands/preview-component.js";
 import { renderCommand } from "./commands/render.js";
 import { newComponent, newTemplate } from "./commands/scaffold.js";
 import { templatesCommand } from "./commands/templates.js";
+import { resolveVersion } from "./engine/docker-relay.js";
 import { runWithEngine } from "./engine/run.js";
 
 yargs(hideBin(process.argv))
   .scriptName("druck")
   .usage("$0 <command> [options]")
+  .version(resolveVersion())
   .option("engine", {
     choices: ["local", "docker", "auto"] as const,
     describe: "Execution engine: run locally, in Docker, or auto-detect (default auto)",
