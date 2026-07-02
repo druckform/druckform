@@ -31,7 +31,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           # NOT 9.14.x — pnpm 9.14.0/9.14.1 broke `pnpm publish` arg forwarding to
           # npm, so `changeset publish` fails with EINVALIDTAGNAME (packed file
