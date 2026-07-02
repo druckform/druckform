@@ -16,7 +16,12 @@ jobs:
       contents: write       # create release commits + tags
       pull-requests: write  # open/update Version PRs
       packages: write       # push to GHCR
-      id-token: write       # npm provenance attestations
+      # NOTE: intentionally NO `id-token: write`. Granting it lets changesets/action
+      # pick npm OIDC trusted publishing when NPM_TOKEN is absent — which, for these
+      # unconfigured packages, fails the publish with a bogus "EINVALIDTAGNAME
+      # index.js.map" (a mangled provenance subject list). Without id-token, OIDC is
+      # unavailable, npm provenance is never attempted, and publishing always uses
+      # classic NPM_TOKEN auth. Docker provenance/sbom attestations do not need it.
 
     steps:
       - name: Checkout
