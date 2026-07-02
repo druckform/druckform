@@ -59,6 +59,10 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
+          # `version` runs `changeset version && pnpm format`: bumping rewrites
+          # package.json with JSON.stringify (which re-expands "files": ["dist"]),
+          # so we re-run biome format to keep the Version PR lint-clean.
+          version: pnpm run version
           # Packages are already built above; publish only
           publish: pnpm changeset publish
           title: "chore: version packages"
