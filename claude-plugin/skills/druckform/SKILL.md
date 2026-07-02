@@ -8,6 +8,25 @@ compatibility: Requires the `druck` CLI on PATH (from the `@druckform/core` pack
 
 Convert Markdown with composable components into styled PDFs via LaTeX, using the `druck` CLI.
 
+## Setup and updates
+
+Run this preflight once at the start of a druckform task, before the first render.
+
+1. **Is `druck` available?** Run `command -v druck`.
+   - If `DRUCK_BIN` is set, use that binary (a local or custom build, with no npm version to track) and skip the rest of this section.
+   - If `druck` is present, go to step 2.
+   - If `druck` is missing, install it, then go straight to the workflow (a fresh install is already current, so skip step 2):
+     ```bash
+     node -v                          # must be >= 22; have the user upgrade Node first if not
+     npm install -g @druckform/core
+     ```
+     The CLI relays rendering to Docker automatically, so the LaTeX toolchain need not be installed. If the global install fails with `EACCES`, the user's npm needs a writable global prefix or a version manager (nvm/fnm); surface that instead of using `sudo`.
+2. **Is it up to date?** (only when `druck` was already installed) Run:
+   ```bash
+   npm outdated -g @druckform/core
+   ```
+   A row (a `Latest` newer than `Current`) means an update exists: tell the user both versions and offer to run `npm install -g @druckform/core@latest`. Do not update without asking. No output means it is current. If the command errors (offline, registry unreachable), skip the check and proceed. Updating the CLI also updates the Docker image tag it renders with, so no separate step is needed.
+
 ## CLI Commands
 
 | Command | Required flags | Optional flags | Output |
