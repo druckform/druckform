@@ -7,6 +7,8 @@ description: Use when creating or modifying a druckform component or template â€
 
 Author and validate custom components and templates for the druckform render pipeline. Two formats (TypeScript, declarative YAML), one loop.
 
+Requires the `druck` CLI (`doctor`, `preview-component`). If it is missing or outdated, run the **druckform** skill's "Setup and updates" preflight (`npm install -g @druckform/core`) before starting.
+
 ## The Author Loop
 
 ```
