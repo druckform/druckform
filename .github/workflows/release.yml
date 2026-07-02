@@ -33,7 +33,11 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.14.0
+          # NOT 9.14.x — pnpm 9.14.0/9.14.1 broke `pnpm publish` arg forwarding to
+          # npm, so `changeset publish` fails with EINVALIDTAGNAME (packed file
+          # paths mis-read as dist-tags). See pnpm#8788. 9.13.2 is the known-good
+          # version; keep this in sync with the `packageManager` field.
+          version: 9.13.2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
