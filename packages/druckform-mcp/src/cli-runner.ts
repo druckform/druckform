@@ -16,6 +16,11 @@ function run(args: string[]): { ok: boolean; stdout: string; stderr: string } {
   const result = spawnSync(cmd, [...cmdArgs, ...args, "--json"], {
     encoding: "utf8",
     maxBuffer: 10 * 1024 * 1024,
+    // The MCP server IS the provisioned renderer (it runs inside the druckform
+    // Docker image, or in a controlled local env), so it must not recursively
+    // relay to Docker. Default the CLI to the `local` engine; honor an explicit
+    // DRUCK_ENGINE override for operators who deliberately want docker relay.
+    env: { ...process.env, DRUCK_ENGINE: process.env.DRUCK_ENGINE ?? "local" },
   });
   if (result.error) {
     return { ok: false, stdout: "", stderr: result.error.message };
