@@ -1,5 +1,13 @@
 # @druckform/mcp
 
+## 1.0.2
+
+### Patch Changes
+
+- 1f15149: Refresh the package READMEs: clearer usage and agent-workflow guidance in a consistent voice, and `@druckform/mcp` is now marked experimental.
+- Updated dependencies [1f15149]
+  - @druckform/core@0.2.2
+
 ## 1.0.1
 
 ### Patch Changes
