@@ -64,7 +64,7 @@ Use the Docker image unless you need to run in a CI environment that already pro
 ## Documentation
 
 - [Authoring guide](docs/authoring.md) — document format, components, styles, templates
-- [Extending guide](docs/extending.md) — adding components, templates, themes; contributing
+- [Extending guide](docs/extending-druckform.md) — adding components, templates, themes; contributing
 
 ## Development
 
