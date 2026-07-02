@@ -1,5 +1,13 @@
 # @druckform/mcp
 
+## 1.0.1
+
+### Patch Changes
+
+- 5cef262: Verify the OIDC trusted-publishing release pipeline (no functional changes).
+- Updated dependencies [5cef262]
+  - @druckform/core@0.2.1
+
 ## 1.0.0
 
 ### Minor Changes
