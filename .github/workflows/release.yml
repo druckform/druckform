@@ -35,7 +35,7 @@ jobs:
           version: 9.13.2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22            # resolves to latest 22.x (>= 22.14, required for OIDC)
           cache: pnpm
