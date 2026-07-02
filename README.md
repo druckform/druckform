@@ -2,8 +2,8 @@
 
 Convert AI-authored Markdown into styled PDFs via LaTeX. Two packages in a TypeScript monorepo, distributed as a Docker image and on npm.
 
-- **`@druckform/core`** — render engine CLI (`druck` / `druckform` binaries)
-- **`@druckform/mcp`** — MCP server adapter for Claude Code
+- **`@druckform/core`**: render engine CLI (`druck` / `druckform` binaries)
+- **`@druckform/mcp`**: MCP server adapter for Claude Code
 
 ## Quick start (Docker)
 
@@ -63,8 +63,8 @@ Use the Docker image unless you need to run in a CI environment that already pro
 
 ## Documentation
 
-- [Authoring guide](docs/authoring.md) — document format, components, styles, templates
-- [Extending guide](docs/extending-druckform.md) — adding components, templates, themes; contributing
+- [Authoring guide](docs/authoring.md): document format, components, styles, templates
+- [Extending guide](docs/extending-druckform.md): adding components, templates, themes, contributing
 
 ## Development
 
@@ -78,7 +78,7 @@ Requires pnpm ≥ 9, Node.js ≥ 22.
 
 ## Testing the CLI locally with Claude Code
 
-To try your local build against a separate Claude Code instance — instead of the published Docker image wired up by the plugin — point Claude at the freshly built CLI's MCP server.
+To try your local build against a separate Claude Code instance, instead of the published Docker image wired up by the plugin, point Claude at the freshly built CLI's MCP server.
 
 1. **Build the packages** so the CLI binary exists:
 
@@ -87,7 +87,7 @@ To try your local build against a separate Claude Code instance — instead of t
    pnpm turbo build
    ```
 
-   This produces two files you'll need: `packages/druckform-mcp/dist/index.js` (the MCP + HTTP server entry point) and `packages/druckform/dist/cli.js` (the render engine). (The published Docker image runs `druck mcp`, which just spawns the globally-installed `druckform-mcp` binary — in a local checkout that binary isn't on your `PATH`, so point Claude at the built file directly.)
+   This produces two files you'll need: `packages/druckform-mcp/dist/index.js` (the MCP + HTTP server entry point) and `packages/druckform/dist/cli.js` (the render engine). (The published Docker image runs `druck mcp`, which just spawns the globally-installed `druckform-mcp` binary. In a local checkout that binary isn't on your `PATH`, so point Claude at the built file directly.)
 
 2. **Register the local server** in the Claude Code instance you want to test with. The MCP server shells out to the `druck` CLI, which isn't on your `PATH` in a checkout, so set `DRUCK_BIN` to the built CLI. From the directory you're testing in:
 
@@ -98,7 +98,7 @@ To try your local build against a separate Claude Code instance — instead of t
      -- node /ABS/PATH/druckform/packages/druckform-mcp/dist/index.js
    ```
 
-   `DRUCKFORM_JOBS_DIR` overrides the server's job working directory — it defaults to `/work/jobs`, which only exists inside the Docker container, so locally you must point it at a writable path (create it first: `mkdir -p ~/.druckform/jobs`). Use the absolute path to your checkout. Alternatively, add a `.mcp.json` to the test project:
+   `DRUCKFORM_JOBS_DIR` overrides the server's job working directory. It defaults to `/work/jobs`, which only exists inside the Docker container, so locally you must point it at a writable path (create it first: `mkdir -p ~/.druckform/jobs`). Use the absolute path to your checkout. Alternatively, add a `.mcp.json` to the test project:
 
    ```json
    {
@@ -127,20 +127,20 @@ To try your local build against a separate Claude Code instance — instead of t
    ln -s /ABS/PATH/druckform/claude-plugin/skills/druckform ~/.claude/skills/druckform
    ```
 
-   A symlink means edits to `SKILL.md` in your checkout show up immediately — no copy to keep in sync.
+   A symlink means edits to `SKILL.md` in your checkout show up immediately, with no copy to keep in sync.
 
 4. **Start Claude Code** in that project and confirm the `druckform` MCP tools are listed (`/mcp`) and the skill is picked up (`/druckform` or `/help`). Ask it to render a document; the tool calls now hit your local build instead of `ghcr.io/druckform/druckform`.
 
 Rebuild (`pnpm turbo build`) and restart the MCP server after code changes.
 
-> Tip: to exercise the CLI directly without Claude, call the built binary — e.g. `node packages/druckform/dist/cli.js templates --json` or `... render --template base --style style.yaml --in document.md --out out.pdf`.
+> Tip: to exercise the CLI directly without Claude, call the built binary, e.g. `node packages/druckform/dist/cli.js templates --json` or `... render --template base --style style.yaml --in document.md --out out.pdf`.
 
 **Troubleshooting `Failed to reconnect … -32000`:** the server crashed on startup. The two common causes:
 
-- **Port already in use.** By default (`DRUCKFORM_HTTP_PORT=0`) the server binds an OS-assigned ephemeral port on launch, so concurrent instances don't clash and `EADDRINUSE` should not occur. If you pin a fixed port via `DRUCKFORM_HTTP_PORT` and another instance already holds it, startup fails with `EADDRINUSE` — free the port or choose another (and use `DRUCKFORM_HTTP_BIND` to change the bind host). With `claude mcp add`, pass it via `-e DRUCKFORM_HTTP_PORT=7332`.
-- **Wrong entry point.** Make sure you registered `packages/druckform-mcp/dist/index.js`, not `cli.js mcp` — the latter needs `druckform-mcp` on your `PATH`.
+- **Port already in use.** By default (`DRUCKFORM_HTTP_PORT=0`) the server binds an OS-assigned ephemeral port on launch, so concurrent instances don't clash and `EADDRINUSE` should not occur. If you pin a fixed port via `DRUCKFORM_HTTP_PORT` and another instance already holds it, startup fails with `EADDRINUSE`. Free the port or choose another (and use `DRUCKFORM_HTTP_BIND` to change the bind host). With `claude mcp add`, pass it via `-e DRUCKFORM_HTTP_PORT=7332`.
+- **Wrong entry point.** Make sure you registered `packages/druckform-mcp/dist/index.js`, not `cli.js mcp`: the latter needs `druckform-mcp` on your `PATH`.
 
-To see the actual error, run the entry point by hand: `node packages/druckform-mcp/dist/index.js` — it logs the listening URL or the crash.
+To see the actual error, run the entry point by hand: `node packages/druckform-mcp/dist/index.js`. It logs the listening URL or the crash.
 
 **Troubleshooting `druck … failed: spawnSync druck ENOENT`:** the MCP server couldn't find the `druck` CLI. Either set `DRUCK_BIN` as shown in step 2, or put `druck` on your `PATH` by symlinking the built binary (it has a shebang and is executable):
 
@@ -150,7 +150,7 @@ ln -sf /ABS/PATH/druckform/packages/druckform/dist/cli.js ~/.local/bin/druck
 
 **Troubleshooting `ENOENT … mkdir '/work/jobs/...'`:** the server is using its container default job directory. Set `DRUCKFORM_JOBS_DIR` to a writable local path (`mkdir -p ~/.druckform/jobs` first), as shown in step 2.
 
-> **The MCP server only reads its env/PATH when it launches.** After changing the config (`DRUCK_BIN`, port) or the PATH, you must reconnect the server — `/mcp` → reconnect, or restart the Claude session. Retrying a failed tool call reuses the same already-running server and will keep failing. Note that a Claude instance started from the macOS GUI app may not inherit your shell `PATH` (so `~/.local/bin` won't be visible) — launch `claude` from a terminal, or rely on the absolute `DRUCK_BIN`.
+> **The MCP server only reads its env/PATH when it launches.** After changing the config (`DRUCK_BIN`, port) or the PATH, you must reconnect the server: `/mcp` → reconnect, or restart the Claude session. Retrying a failed tool call reuses the same already-running server and will keep failing. Note that a Claude instance started from the macOS GUI app may not inherit your shell `PATH` (so `~/.local/bin` won't be visible). Launch `claude` from a terminal, or rely on the absolute `DRUCK_BIN`.
 
 ### System dependencies
 
@@ -176,9 +176,9 @@ brew install plantuml   # or grab plantuml.jar manually
 export PLANTUML_JAR="$(brew --prefix)/opt/plantuml/libexec/plantuml.jar"
 ```
 
-`PLANTUML_JAR` defaults to `/usr/local/lib/plantuml.jar`; set it to wherever your jar lives. `curl` and `zip` ship with macOS. mermaid-cli needs Chromium — if `mmdc` can't find one, set `PUPPETEER_EXECUTABLE_PATH` to a Chromium/Chrome binary.
+`PLANTUML_JAR` defaults to `/usr/local/lib/plantuml.jar`; set it to wherever your jar lives. `curl` and `zip` ship with macOS. mermaid-cli needs Chromium: if `mmdc` can't find one, set `PUPPETEER_EXECUTABLE_PATH` to a Chromium/Chrome binary.
 
-If installing all of this locally is impractical, use the Docker image instead — it bundles every dependency.
+If installing all of this locally is impractical, use the Docker image instead. It bundles every dependency.
 
 ### Tectonic cache
 
@@ -188,7 +188,7 @@ If you need fully offline / hermetic rendering, pre-warm the cache once by compi
 
 ### Fonts
 
-The bundled example style requests `Liberation Serif` / `Liberation Mono`, which the Docker image installs but a local machine usually lacks — `fontspec` then fails with *"The font … cannot be found."* Either install them (`brew install --cask font-liberation`, plus Noto) or use a style with **no `fonts` block**, which falls back to Latin Modern (bundled with Tectonic).
+The bundled example style requests `Liberation Serif` / `Liberation Mono`, which the Docker image installs but a local machine usually lacks. `fontspec` then fails with *"The font … cannot be found."* Either install them (`brew install --cask font-liberation`, plus Noto) or use a style with **no `fonts` block**, which falls back to Latin Modern (bundled with Tectonic).
 
 ### Docker smoke test
 
