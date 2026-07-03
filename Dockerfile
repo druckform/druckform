@@ -52,10 +52,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Layer 2: Tectonic binary + pre-warm TeX package cache
+# Layer 2: Tectonic binary (arch-aware) + pre-warm TeX package cache.
 # Tectonic downloads packages on first use; we pre-warm by compiling a minimal doc.
-RUN curl -fsSL \
-    "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.15.0/tectonic-0.15.0-x86_64-unknown-linux-musl.tar.gz" \
+# TARGETARCH is set automatically by buildx per platform; fall back to the image's
+# own arch so a plain `docker build` still works. Tectonic ships x86_64 and aarch64
+# musl builds.
+ARG TARGETARCH
+RUN ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" \
+    && case "$ARCH" in \
+         amd64) TECTONIC_ARCH=x86_64 ;; \
+         arm64) TECTONIC_ARCH=aarch64 ;; \
+         *) echo "unsupported architecture: $ARCH" >&2; exit 1 ;; \
+       esac \
+    && curl -fsSL \
+       "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.15.0/tectonic-0.15.0-${TECTONIC_ARCH}-unknown-linux-musl.tar.gz" \
     | tar -xz -C /usr/local/bin/ \
     && chmod +x /usr/local/bin/tectonic
 

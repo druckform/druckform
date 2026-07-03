@@ -112,7 +112,7 @@ Note: `--params` values are interpolated into `key="value"` fence attributes, so
 
 The `DRUCK_ENGINE` environment variable (`local`/`docker`/`auto`) sets the same choice and is used whenever `--engine` is not passed; `--engine` wins if both are set.
 
-The Docker image defaults to `ghcr.io/druckform/druckform:<cli-version>` (the installed `@druckform/core` package's own version) and can be overridden with `DRUCK_DOCKER_IMAGE`.
+The Docker image defaults to `ghcr.io/druckform/druckform:<cli-version>` (the installed `@druckform/core` package's own version) and can be overridden with `DRUCK_DOCKER_IMAGE`. The image is published multi-arch (linux/amd64 + linux/arm64), so it runs natively on Apple Silicon; set `DRUCK_DOCKER_PLATFORM` (e.g. `linux/amd64`) to force a specific platform when relaying.
 
 In `auto` mode, a boot report (which of `tectonic`/`rsvg-convert`/`mmdc`/`java` were found, their resolved paths, and which engine was picked) is printed to **stderr**. This keeps `--json` output on stdout machine-readable even when the auto-probe runs.
 
@@ -1294,6 +1294,7 @@ re-exported from `@druckform/core`; reference it structurally as `{ name: string
 | `DRUCKFORM_TEMPLATES_DIR` | none | extra dir scanned for **user** templates |
 | `DRUCK_ENGINE` | `auto` | execution engine for `render` and `preview-component`: `local`, `docker`, or `auto` (probes for tools; uses Docker if any are missing) |
 | `DRUCK_DOCKER_IMAGE` | `ghcr.io/druckform/druckform:<version>` | Docker image override (where `<version>` is the installed @druckform/core package version) |
+| `DRUCK_DOCKER_PLATFORM` | none | force the container platform when relaying to Docker (e.g. `linux/amd64`); passed as `docker run --platform` |
 | `DRUCKFORM_JOBS_DIR` | `/work/jobs` | MCP job working dirs |
 | `DRUCKFORM_MAX_JOBS` | `10` | MCP max concurrent jobs |
 | `DRUCKFORM_HTTP_PORT` | `0` (OS-assigned ephemeral) | MCP HTTP port. Default `0` gives each instance its own free port (no clashes between concurrent Claude instances). Set a fixed value only when you need determinism (CI, docker port mapping). |

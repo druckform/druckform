@@ -94,6 +94,10 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
 
+      - name: Set up QEMU (cross-build linux/arm64 on the amd64 runner)
+        if: steps.changesets.outputs.published == 'true'
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         if: steps.changesets.outputs.published == 'true'
         uses: docker/setup-buildx-action@v3
@@ -104,6 +108,11 @@ jobs:
         with:
           context: .
           push: true
+          # Multi-arch so `--engine docker` works natively on Apple Silicon.
+          # arm64 builds under QEMU here (correct but slow — the Tectonic prewarm
+          # compile runs emulated); if it gets too slow, split into a native
+          # amd64 + ubuntu-*-arm matrix and merge into one manifest.
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/druckform:latest
             ghcr.io/${{ github.repository_owner }}/druckform:${{ steps.version.outputs.version }}

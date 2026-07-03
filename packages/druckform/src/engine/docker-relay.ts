@@ -71,10 +71,14 @@ export interface DockerArgsSpec {
   mountDirs: string[];
   templatesDir?: string;
   image: string;
+  /** Force a target platform (e.g. "linux/amd64"), from DRUCK_DOCKER_PLATFORM. */
+  platform?: string;
 }
 
 export function buildDockerArgs(s: DockerArgsSpec): string[] {
-  const args = ["run", "--rm", "-w", s.cwd];
+  const args = ["run"];
+  if (s.platform) args.push("--platform", s.platform);
+  args.push("--rm", "-w", s.cwd);
   for (const d of s.mountDirs) args.push("-v", `${d}:${d}`);
   if (s.templatesDir) {
     args.push("-e", `DRUCKFORM_TEMPLATES_DIR=${path.resolve(s.cwd, s.templatesDir)}`);
