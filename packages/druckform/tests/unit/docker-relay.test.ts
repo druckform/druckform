@@ -76,6 +76,28 @@ describe("buildDockerArgs", () => {
     });
     expect(args.join(" ")).not.toContain("DRUCKFORM_TEMPLATES_DIR");
   });
+  it("inserts --platform right after run when platform is set", () => {
+    const args = buildDockerArgs({
+      passthrough: ["render"],
+      cwd: "/w",
+      mountDirs: ["/w"],
+      image: "img",
+      platform: "linux/amd64",
+    });
+    expect(args.slice(0, 3)).toEqual(["run", "--platform", "linux/amd64"]);
+    // still a valid run invocation
+    expect(args).toContain("--rm");
+    expect(args.indexOf("--rm")).toBeGreaterThan(args.indexOf("--platform"));
+  });
+  it("omits --platform when not set", () => {
+    const args = buildDockerArgs({
+      passthrough: ["render"],
+      cwd: "/w",
+      mountDirs: ["/w"],
+      image: "img",
+    });
+    expect(args).not.toContain("--platform");
+  });
 });
 
 describe("relayToDocker", () => {

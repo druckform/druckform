@@ -42,12 +42,14 @@ export async function runWithEngine(opts: RunEngineOpts): Promise<void> {
       ...(templatesDir ? { templatesDir } : {}),
     });
     const image = env.DRUCK_DOCKER_IMAGE ?? defaultImage();
+    const platform = env.DRUCK_DOCKER_PLATFORM;
     const spec = {
       passthrough: stripEngineFlag(opts.rawArgs),
       cwd,
       mountDirs,
       ...(templatesDir ? { templatesDir } : {}),
       image,
+      ...(platform ? { platform } : {}),
     };
     const code = relayToDocker(spec, d.spawn);
     exit(code);

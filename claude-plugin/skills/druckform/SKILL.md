@@ -74,7 +74,7 @@ That's the whole loop — `render` writes the PDF directly to `--out`; there is 
 `druck render` and `druck preview-component` pick where the render actually happens:
 
 - `--engine local` — run with the tools on this machine (`tectonic`, `rsvg-convert`, `mmdc`, `java`).
-- `--engine docker` — relay the same command into a Docker container (default image `ghcr.io/druckform/druckform:<cli-version>`; override with `DRUCK_DOCKER_IMAGE`).
+- `--engine docker` — relay the same command into a Docker container (default image `ghcr.io/druckform/druckform:<cli-version>`; override with `DRUCK_DOCKER_IMAGE`, or set `DRUCK_DOCKER_PLATFORM` such as `linux/amd64` to force the container platform).
 - `--engine auto` (default) — probe for the four local tools; if all are present, run locally, otherwise relay to Docker automatically. The `DRUCK_ENGINE` environment variable sets the same choice (`local`/`docker`/`auto`) when `--engine` isn't passed.
 
 In `auto` mode a boot report (which tools were found/missing and which engine was chosen) is printed to **stderr**, so `--json` output on stdout stays clean. When relaying to Docker, paths are mounted identically (same path inside the container as outside), so `--in`/`--out`/`--assets`/`--style` need no rewriting. This applies only to `render` and `preview-component` — all other commands (`templates`, `components`, `lint`, `doctor`, `new`) always run locally.

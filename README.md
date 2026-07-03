@@ -73,6 +73,8 @@ docker run --rm \
 
 Mount your working directory to `/work`. The `--template`, `--style`, `--in`, and `--out` paths should be absolute (inside the container).
 
+**Apple Silicon (arm64):** the image is built multi-arch (linux/amd64 + linux/arm64), so it runs natively on Apple Silicon, both directly and via `druck --engine docker`. Older tags were amd64-only; if you pin one and Docker reports `no matching manifest for linux/arm64`, force emulation with `DRUCK_DOCKER_PLATFORM=linux/amd64` (when using the `druck` CLI) or `--platform linux/amd64` (with `docker run` directly). Emulated renders are slower, so prefer a multi-arch tag.
+
 See [docs/authoring.md](docs/authoring.md) for the document format and available components.
 
 ## CLI reference
