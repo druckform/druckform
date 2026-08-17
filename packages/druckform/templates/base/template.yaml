@@ -15,8 +15,26 @@ style:
 components:
   document:
     source: components/document.ts
+  callout:
+    source: components/callout.ts
+  # Friendly names over one implementation. `:::warning` matches the
+  # MkDocs/Docusaurus convention, so it is guessable without reading docs.
+  note:
+    extends: base.callout
+    defaults: { variant: info }
+  tip:
+    extends: base.callout
+    defaults: { variant: tip }
+  warning:
+    extends: base.callout
+    defaults: { variant: warn }
+  danger:
+    extends: base.callout
+    defaults: { variant: danger }
+  # Back-compat alias for the original component name.
   infobox:
-    source: components/infobox.component.yaml
+    extends: base.callout
+    defaults: { variant: info }
   "block:heading":
     source: components/block-heading.ts
   "block:blockquote":

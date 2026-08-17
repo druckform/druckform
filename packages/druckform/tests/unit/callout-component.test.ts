@@ -2,7 +2,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { renderComponent } from "../helpers/render-component.js";
 
-const SRC = path.resolve(import.meta.dirname, "../../templates/report/components/callout.ts");
+const SRC = path.resolve(import.meta.dirname, "../../templates/base/components/callout.ts");
 
 describe("callout variants map to distinct colour tokens", () => {
   it.each([

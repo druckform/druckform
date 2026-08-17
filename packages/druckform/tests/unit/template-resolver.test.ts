@@ -113,8 +113,8 @@ describe("ResolvedComponentEntry.templateDir", () => {
     const t = await resolveTemplate("report", loadAllTemplates(BUNDLED));
     // An inherited shell from `base` resolves to the base template dir.
     expect(t.components.document.templateDir).toBe(path.join(BUNDLED, "base"));
-    // A component defined by `report` resolves to the report template dir.
-    expect(t.components.callout.templateDir).toBe(path.join(BUNDLED, "report"));
+    // `callout` is now defined by `base` (report no longer has its own copy).
+    expect(t.components.callout.templateDir).toBe(path.join(BUNDLED, "base"));
     // override.extends (partial override) keeps the parent's defining dir
     expect(t.components.infobox.templateDir).toBe(path.join(BUNDLED, "base"));
   });
