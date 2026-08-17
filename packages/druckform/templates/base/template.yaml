@@ -2,8 +2,16 @@ name: base
 description: "Base template — foundational components for all documents."
 style:
   tokens:
+    # Every token any bundled component declares as required must have a default
+    # here, so a hand-written style that omits one gets a sensible colour instead
+    # of a "Missing required style token" error. Users override freely via --style.
     colors:
       accent: "#2E5AAC"
+      warning: "#B26A00"
+      danger: "#B00020"
+    page:
+      size: a4
+      margin: "2.5cm"
 components:
   document:
     source: components/document.ts

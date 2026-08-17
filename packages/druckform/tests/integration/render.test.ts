@@ -38,13 +38,19 @@ describe("render integration", () => {
   });
 
   it("produces error contract when token coverage fails", async () => {
-    // An empty external style; rendered against `report`, whose `callout` component
-    // requires the `warning` token that neither the empty style nor the inherited
-    // base style provides — so token coverage fails.
+    // An empty external style; rendered against the `tokengap` fixture template,
+    // whose `gap` component requires `brand-highlight` — a token that neither the
+    // empty style nor the inherited base style provides — so token coverage fails.
+    // (`base` now supplies a default for every token its own bundled components
+    // require, so this can no longer be exercised via a bundled template.)
     const fs = await import("node:fs");
     const os = await import("node:os");
     const emptyStyle = path.join(os.tmpdir(), "empty-style.yaml");
     fs.writeFileSync(emptyStyle, "$schema: style-v1\ntokens: {}", "utf8");
+    process.env.DRUCKFORM_TEMPLATES_DIR = path.resolve(
+      import.meta.dirname,
+      "../fixtures/templates",
+    );
 
     const writes: string[] = [];
     vi.spyOn(process.stdout, "write").mockImplementation((s) => {
@@ -59,7 +65,7 @@ describe("render integration", () => {
 
     await expect(
       renderCommand(
-        "report",
+        "tokengap",
         emptyStyle,
         path.join(FIXTURES, "documents/valid.md"),
         FIXTURES,
@@ -74,6 +80,7 @@ describe("render integration", () => {
     expect(exits[0]).toBe(1);
 
     vi.restoreAllMocks();
+    process.env.DRUCKFORM_TEMPLATES_DIR = undefined;
     fs.unlinkSync(emptyStyle);
   });
 });
