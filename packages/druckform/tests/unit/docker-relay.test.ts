@@ -59,6 +59,7 @@ describe("buildDockerArgs", () => {
       image: "ghcr.io/druckform/druckform:0.1.0",
     });
     expect(args.slice(0, 4)).toEqual(["run", "--rm", "-w", "/work/proj"]);
+    expect(args.join(" ")).toContain("-e DRUCK_ENGINE=local");
     expect(args).toContain("-v");
     expect(args.join(" ")).toContain("/work/proj:/work/proj");
     expect(args.join(" ")).toContain("/etc/styles:/etc/styles");
@@ -75,6 +76,9 @@ describe("buildDockerArgs", () => {
       image: "img",
     });
     expect(args.join(" ")).not.toContain("DRUCKFORM_TEMPLATES_DIR");
+    // The engine pin is unconditional — it prevents a recursive relay, which has
+    // nothing to do with whether a templates dir was supplied.
+    expect(args.join(" ")).toContain("-e DRUCK_ENGINE=local");
   });
   it("inserts --platform right after run when platform is set", () => {
     const args = buildDockerArgs({

@@ -9,3 +9,4 @@ docs/
 .idea/
 *.md
 !README.md
+tests/e2e/.staging/

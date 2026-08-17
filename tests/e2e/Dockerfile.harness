@@ -1,0 +1,45 @@
+# The e2e harness: a bare Linux box that installs Node and Docker, then runs its
+# own nested dockerd. It stands in for a user's machine, so it deliberately does
+# NOT have the render toolchain (tectonic / mmdc / java / rsvg-convert) — the
+# four binaries src/engine/probe-tools.ts probes. That absence is the point:
+# `--engine auto` must resolve to `docker` and relay the render into the image.
+#
+# Nested (not socket-mounted) because buildDockerArgs emits identity mounts
+# (-v <abs>:<abs>). With its own daemon, the CLI and the daemon share one
+# filesystem namespace, so those mounts resolve with no host path aliasing.
+FROM debian:bookworm-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Node 22 from NodeSource (not a node:22 base image) so the install itself is
+# part of what this test covers, including the documented Node >= 22 floor.
+# poppler-utils gives us pdftotext/pdfinfo for the PDF assertions; the druckform
+# image has no poppler, so the assertions have to live out here.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl gnupg iptables uidmap poppler-utils \
+    && install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+       | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" \
+       > /etc/apt/sources.list.d/nodesource.list \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg \
+       | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" \
+       > /etc/apt/sources.list.d/docker.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
+      nodejs docker-ce docker-ce-cli containerd.io \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY dockerd-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
+
+# overlay2, not vfs: vfs copies the whole rootfs for every layer, so loading the
+# ~1.5 GB druckform image needs well over 10 GB and fills the daemon's disk.
+# /var/lib/docker is a volume so the nested daemon writes to a real filesystem
+# rather than stacking overlay on overlay. The entrypoint falls back to vfs if
+# overlay2 cannot start.
+ENV DOCKER_DRIVER=overlay2
+VOLUME /var/lib/docker
+
+ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
+CMD ["bash"]

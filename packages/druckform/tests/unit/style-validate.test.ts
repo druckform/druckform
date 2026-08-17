@@ -41,3 +41,53 @@ describe("style schema: mermaid.themeVariables", () => {
     expect(loadStyle(p).diagrams?.mermaid?.themeVariablesRef).toBe("brand.json");
   });
 });
+
+// FontSpec is `string | { name, options? }` (sdk/types.ts), the compiler emits
+// \setmainfont{name}[options] for the object form, and extending-druckform.md
+// §4.1 documents it — but the schema only allowed a bare string, so a style file
+// using the documented form failed to load with "/tokens/fonts/main must be
+// string".
+describe("style schema: fonts accept the FontSpec object form", () => {
+  it("accepts a bare font name", () => {
+    const p = writeStyle({
+      $schema: "style-v1",
+      tokens: { fonts: { main: "Liberation Serif", mono: "Liberation Mono" } },
+    });
+    expect(loadStyle(p).tokens.fonts?.main).toBe("Liberation Serif");
+  });
+
+  it("accepts { name, options } for fontspec options", () => {
+    const p = writeStyle({
+      $schema: "style-v1",
+      tokens: { fonts: { main: { name: "Noto Sans", options: "AutoFakeBold=2.2" } } },
+    });
+    expect(loadStyle(p).tokens.fonts?.main).toEqual({
+      name: "Noto Sans",
+      options: "AutoFakeBold=2.2",
+    });
+  });
+
+  it("accepts { name } with no options", () => {
+    const p = writeStyle({
+      $schema: "style-v1",
+      tokens: { fonts: { mono: { name: "JetBrains Mono" } } },
+    });
+    expect(loadStyle(p).tokens.fonts?.mono).toEqual({ name: "JetBrains Mono" });
+  });
+
+  it("rejects an object without a name", () => {
+    const p = writeStyle({
+      $schema: "style-v1",
+      tokens: { fonts: { main: { options: "AutoFakeBold=2.2" } } },
+    });
+    expect(() => loadStyle(p)).toThrow(/Invalid style\.yaml/);
+  });
+
+  it("rejects an unknown key inside the font object", () => {
+    const p = writeStyle({
+      $schema: "style-v1",
+      tokens: { fonts: { main: { name: "Noto Sans", weight: "bold" } } },
+    });
+    expect(() => loadStyle(p)).toThrow(/Invalid style\.yaml/);
+  });
+});

@@ -79,6 +79,12 @@ export function buildDockerArgs(s: DockerArgsSpec): string[] {
   const args = ["run"];
   if (s.platform) args.push("--platform", s.platform);
   args.push("--rm", "-w", s.cwd);
+  // Pin the container to the local engine. Without this the CLI inside the image
+  // re-runs engine resolution in `auto` mode; if any probed tool is missing there
+  // it decides to relay again, finds no `docker` binary, and exits 127 — masking
+  // the real "tool X is missing from the image" error. (druckform-mcp's
+  // cli-runner.ts pins DRUCK_ENGINE for the same reason.)
+  args.push("-e", "DRUCK_ENGINE=local");
   for (const d of s.mountDirs) args.push("-v", `${d}:${d}`);
   if (s.templatesDir) {
     args.push("-e", `DRUCKFORM_TEMPLATES_DIR=${path.resolve(s.cwd, s.templatesDir)}`);

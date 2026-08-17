@@ -1,0 +1,6 @@
+' PlantUML skin loaded via style.yaml -> diagrams.plantuml.skinRef.
+' Resolved relative to the directory holding style.yaml.
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowColor #7A1F7A
+skinparam sequenceParticipantBorderColor #7A1F7A
+skinparam shadowing false

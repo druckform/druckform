@@ -23,6 +23,7 @@ Under the hood it is two packages in a TypeScript monorepo, shipped as a Docker 
 - [Documentation](#documentation)
 - [Development](#development)
 - [Testing the CLI locally with Claude Code](#testing-the-cli-locally-with-claude-code)
+- [End-to-end test: npm-installed CLI with the Docker backend](#end-to-end-test-npm-installed-cli-with-the-docker-backend)
 
 ## Using with Claude Code
 
@@ -231,3 +232,45 @@ To verify the published image builds and the CLI contracts hold, run the smoke t
 ./tests/docker-smoke.sh                 # builds druckform:local and exercises the CLI
 ./tests/docker-smoke.sh my-image:tag    # use a custom image tag
 ```
+
+This runs `druck` *inside* the image, via its entrypoint. It does not cover the
+path most people actually use, which is the next section.
+
+### End-to-end test: npm-installed CLI with the Docker backend
+
+The smoke test above calls the image directly, so it never touches the code that
+decides to relay a render into Docker, and it stops before rendering a PDF. The
+e2e suite covers that path:
+
+```bash
+./tests/e2e/run-e2e.sh                    # full run
+./tests/e2e/run-e2e.sh my-image:tag       # use a specific image tag
+E2E_SKIP_BUILD=1 ./tests/e2e/run-e2e.sh   # reuse an already-built image
+```
+
+It builds the image, packs both npm tarballs, and starts a privileged harness
+container — a bare Debian box that installs Node 22 and Docker, then runs its own
+nested `dockerd`. Inside it, the packed CLI is installed with `npm install -g` and
+driven the way a user drives it. Deliberately, the harness has none of
+`tectonic` / `mmdc` / `java` / `rsvg-convert`, so `--engine auto` has to fall back
+to Docker.
+
+What that buys you, none of which the smoke test can check:
+
+- the packed tarball installs and puts `druck` on `PATH`
+- the `files` allowlist in `package.json` actually ships the bundled templates
+- `--engine auto` resolves to `docker` on a machine with no LaTeX toolchain, and
+  `--engine local` fails with usable guidance instead of a stack trace
+- a missing `docker` binary exits 127 with the documented hint
+- real PDFs come out, with Mermaid and PlantUML diagrams that carry real text
+- a custom `DRUCKFORM_TEMPLATES_DIR` template survives the identity bind-mount,
+  including TypeScript components, auto-discovery, overrides and tombstones
+- failures still exit non-zero and still emit the `--json` contract after the
+  relay
+
+Rendered PDFs, extracted text and every captured log land in
+`tests/e2e/.staging/artifacts/` (also uploaded as a CI artifact on failure).
+
+**Requirements:** Docker with `--privileged` available, since the harness runs a
+nested daemon. Expect roughly 10 minutes cold. In CI this is the
+`CLI + Docker Backend E2E` workflow, which runs on pull requests and on demand.

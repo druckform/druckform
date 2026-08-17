@@ -1,0 +1,79 @@
+name: CLI + Docker Backend E2E
+
+# Covers druckform's primary path, which no other job touches: install the CLI
+# from npm, run `druck render`, let it relay into the Docker image, assert on the
+# resulting PDF. docker-build-test.yml drives the image's ENTRYPOINT directly and
+# so skips the whole relay layer (packages/druckform/src/engine/*); it also stops
+# at `lint` and never renders. Kept as a separate workflow so that fast job stays
+# fast.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - docker/**
+      - packages/**
+      - pnpm-lock.yaml
+      - tests/e2e/**
+      - .github/workflows/cli-docker-e2e.yml
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: npm install -g + docker relay + real render
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.13.2 # keep in sync with packageManager field + release.yml
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Same gha cache as docker-build-test.yml, so on a PR that runs both this
+      # is a cache hit rather than a second full build of the Tectonic prewarm.
+      - name: Build druckform image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: druckform:e2e
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # E2E_SKIP_BUILD because the step above already produced druckform:e2e.
+      - name: Run the e2e suite
+        run: ./tests/e2e/run-e2e.sh druckform:e2e
+        env:
+          E2E_SKIP_BUILD: "1"
+
+      - name: Upload rendered artifacts and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: tests/e2e/.staging/artifacts/
+          retention-days: 7
+          if-no-files-found: warn

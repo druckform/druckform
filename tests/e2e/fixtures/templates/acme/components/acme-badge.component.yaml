@@ -1,0 +1,12 @@
+name: acme-badge
+description: "Inline badge — must emit inline LaTeX only (no \\par, no environments)."
+form: inline
+params:
+  accent: { type: token, required: false, default: acme }
+slots:
+  children: true
+# `{}` after the token macro terminates the control-sequence name, otherwise
+# "\druckAcme" would run into "ACMEBADGE" and LaTeX would see one undefined macro.
+emits: "\\textbf{[{{accent}}{}ACMEBADGE {{children}}]}"
+example: |
+  Shipped in :acme-badge[v2] today.

@@ -1,0 +1,19 @@
+$schema: "style-v1"
+tokens:
+  colors:
+    accent: "#2E5AAC"
+    warning: "#B26A00"
+    infoboxBg: "#EEF3FB"
+  fonts:
+    # Both are installed in the druckform image via fonts-liberation. A local
+    # (non-Docker) machine usually lacks them — that is deliberate here, because
+    # this fixture is only ever rendered inside the container.
+    main: "Liberation Serif"
+    mono: "Liberation Mono"
+  spacing:
+    blockGap: "0.8em"
+diagrams:
+  mermaid:
+    theme: "neutral"
+  plantuml:
+    skinRef: "assets/skin.puml"

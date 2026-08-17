@@ -9,3 +9,6 @@ coverage/
 
 # esbuild component-loader scratch files (written next to source, normally auto-removed)
 .druckform-tmp-*
+
+# e2e staging: packed tarballs, a docker save tarball, and rendered artifacts
+tests/e2e/.staging/
