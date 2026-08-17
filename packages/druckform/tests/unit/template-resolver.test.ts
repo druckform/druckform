@@ -119,3 +119,36 @@ describe("ResolvedComponentEntry.templateDir", () => {
     expect(t.components.infobox.templateDir).toBe(path.join(BUNDLED, "base"));
   });
 });
+
+describe("cross-name component extends", () => {
+  const BUNDLED = path.resolve(import.meta.dirname, "../../templates");
+  const FIXTURES = path.resolve(import.meta.dirname, "../fixtures/templates");
+
+  it("aliases a differently-named parent component", async () => {
+    const all = loadAllTemplates(BUNDLED, FIXTURES);
+    const resolved = await resolveTemplate("aliasing", all);
+
+    // Registered under the new key...
+    expect(resolved.components.restated).toBeDefined();
+    // ...but backed by base's infobox implementation.
+    expect(resolved.components.restated?.sourcePath).toBe(resolved.components.infobox?.sourcePath);
+    // toMatchObject, not toEqual: once Task 7 registers infobox as an alias of
+    // callout, the inherited defaults also carry `variant`.
+    expect(resolved.components.restated?.defaults).toMatchObject({ accent: "accent" });
+  });
+
+  it("still supports same-name extends (report's infobox override)", async () => {
+    const all = loadAllTemplates(BUNDLED, FIXTURES);
+    const resolved = await resolveTemplate("report", all);
+    expect(resolved.components.infobox?.defaults).toMatchObject({ accent: "warning" });
+  });
+
+  it("errors on an extends target that does not exist", async () => {
+    const all = loadAllTemplates(BUNDLED, FIXTURES);
+    // Previously the extends value was never parsed, so this silently resolved
+    // to the same-named component instead of failing.
+    await expect(resolveTemplate("aliasbad", all)).rejects.toThrow(
+      /extends unknown parent 'base\.doesNotExist'/,
+    );
+  });
+});

@@ -19,7 +19,7 @@ export async function componentsCommand(template: string, json: boolean): Promis
   const contract: ComponentsContract = {
     schemaVersion: "1",
     template,
-    components: Object.values(resolved.components).map(({ def, sourcePath }) => {
+    components: Object.entries(resolved.components).map(([name, { def, sourcePath }]) => {
       const source = (() => {
         try {
           return fs.readFileSync(sourcePath, "utf8");
@@ -28,7 +28,7 @@ export async function componentsCommand(template: string, json: boolean): Promis
         }
       })();
       return {
-        name: def.meta.name,
+        name,
         description: def.meta.description,
         params: def.jsonSchema,
         acceptsChildren: def.meta.acceptsChildren,

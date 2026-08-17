@@ -60,9 +60,18 @@ export async function resolveTemplate(
           defaults: override.defaults ?? {},
         });
       } else if (override.extends) {
-        // Type-a partial override: merge defaults only, keep parent source
-        const existing = mergedComponents.get(compName);
-        if (!existing) throw new Error(`Component ${compName} extends unknown parent`);
+        // `extends: <template>.<component>` names the parent being extended. The
+        // component after the dot MAY differ from this entry's key — that is how a
+        // friendly alias is declared (`note: { extends: base.callout }`). A value
+        // with no dot is read as a bare component name. Previously the value was
+        // never parsed and the key was used instead, so aliasing was impossible and
+        // a typo'd target silently resolved to the same-named component.
+        const dot = override.extends.lastIndexOf(".");
+        const parentName = dot >= 0 ? override.extends.slice(dot + 1) : override.extends;
+        const existing = mergedComponents.get(parentName);
+        if (!existing) {
+          throw new Error(`Component '${compName}' extends unknown parent '${override.extends}'`);
+        }
         mergedComponents.set(compName, {
           sourcePath: existing.sourcePath,
           templateDir: existing.templateDir,
