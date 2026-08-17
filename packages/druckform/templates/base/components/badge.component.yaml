@@ -1,0 +1,11 @@
+name: badge
+description: "Inline coloured label, e.g. a status marker."
+form: inline
+params:
+  accent: { type: token, required: false, default: accent }
+slots:
+  children: true
+# `{}` terminates the colour macro's name so it does not run into the text.
+emits: "\\textbf{[{{accent}}{}\\,{{children}}\\,]}"
+example: |
+  Status: :badge[DRAFT]

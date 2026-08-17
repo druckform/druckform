@@ -1,0 +1,9 @@
+name: footnote
+description: "Inline footnote; the bracketed content becomes the note text."
+form: inline
+params: {}
+slots:
+  children: true
+emits: "\\footnote{{{children}}}"
+example: |
+  The figure is provisional:footnote[Measured on 2026-08-17.].

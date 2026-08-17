@@ -68,3 +68,9 @@ components:
     source: components/pullquote.component.yaml
   deflist:
     source: components/deflist.ts
+  metadata:
+    source: components/metadata.ts
+  badge:
+    source: components/badge.component.yaml
+  footnote:
+    source: components/footnote.component.yaml
