@@ -19,7 +19,10 @@ export function render(
   return [
     element.stylePreamble,
     element.componentPreamble,
-    "\\usepackage[a4paper,margin=2.5cm]{geometry}",
+    // Bare \geometry, not a bracketed \usepackage load: the engine core
+    // already loads the geometry package, and loading it twice with options
+    // is an Option clash.
+    "\\geometry{margin=2.5cm}",
     "\\begin{document}",
     title ? `\\section*{${title}}` : "",
     "DRUCKFORM_BODY",

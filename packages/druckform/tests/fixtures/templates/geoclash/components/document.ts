@@ -2,7 +2,7 @@ import type { BlockElement, DocumentLayout, RenderCtx } from "@druckform/core";
 import { z } from "zod";
 
 export const schema = z.object({});
-export const meta = { name: "document", description: "custom shell", acceptsChildren: true };
+export const meta = { name: "document", description: "clashing shell", acceptsChildren: true };
 
 export function render(
   _params: unknown,
@@ -12,13 +12,9 @@ export function render(
 ): string {
   if (!element || element.kind !== "document") return "DRUCKFORM_BODY";
   return [
-    "%CUSTOMDOC",
     element.stylePreamble,
     element.componentPreamble,
-    // Bare \geometry, not a bracketed \usepackage load: the engine core
-    // already loads the geometry package, and loading it twice with options
-    // is an Option clash.
-    "\\geometry{a4paper}",
+    "\\usepackage[a4paper,margin=2cm]{geometry}",
     "\\begin{document}",
     "DRUCKFORM_BODY",
     "\\end{document}",

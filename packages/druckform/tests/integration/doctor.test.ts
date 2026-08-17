@@ -96,3 +96,33 @@ describe("druck doctor", () => {
     restore();
   });
 });
+
+describe("druck doctor: geometry option clash", () => {
+  const USER = path.resolve(import.meta.dirname, "../fixtures/templates");
+
+  it("flags a document shell that loads geometry with options", async () => {
+    process.env.DRUCKFORM_TEMPLATES_DIR = USER;
+    const { writes, restore } = capture();
+    await expect(doctorCommand("geoclash", true)).rejects.toThrow("exit");
+    const out = JSON.parse(writes.join(""));
+    restore();
+    process.env.DRUCKFORM_TEMPLATES_DIR = undefined;
+
+    expect(out.ok).toBe(false);
+    const finding = out.findings.find((f: { message: string }) => /geometry/.test(f.message));
+    expect(finding).toBeDefined();
+    expect(finding.severity).toBe("error");
+    expect(finding.message).toMatch(/\\geometry\{/);
+  });
+
+  it("does not flag a shell that uses \\geometry{...}", async () => {
+    process.env.DRUCKFORM_TEMPLATES_DIR = USER;
+    const { writes, restore } = capture();
+    await doctorCommand("customdoc", true);
+    const out = JSON.parse(writes.join(""));
+    restore();
+    process.env.DRUCKFORM_TEMPLATES_DIR = undefined;
+
+    expect(out.findings.some((f: { message: string }) => /geometry/.test(f.message))).toBe(false);
+  });
+});

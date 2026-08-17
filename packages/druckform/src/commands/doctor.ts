@@ -112,6 +112,35 @@ function checkDocumentShell(resolved: ResolvedTemplate, findings: Finding[]): vo
   }
 }
 
+// The engine core loads geometry bare so styles can apply page setup via
+// \geometry{…}. A component loading it again WITH options triggers LaTeX's
+// "Option clash for package geometry", which surfaces as an opaque compile
+// failure with no hint about the cause — so name it here instead.
+// Matches both a .ts source (where the literal is escaped, \\usepackage) and a
+// declarative `emits:` block (single backslash).
+const GEOMETRY_CLASH = /\\{1,2}usepackage\[[^\]]*\]\{geometry\}/;
+
+function checkGeometryClash(resolved: ResolvedTemplate, findings: Finding[]): void {
+  for (const [name, entry] of Object.entries(resolved.components)) {
+    let src: string;
+    try {
+      src = fs.readFileSync(entry.sourcePath, "utf8");
+    } catch {
+      continue;
+    }
+    if (GEOMETRY_CLASH.test(src)) {
+      findings.push({
+        severity: "error",
+        component: name,
+        message:
+          "loads geometry with options (\\usepackage[...]{geometry}), which clashes " +
+          "with the engine core's bare load — use \\geometry{...} instead, or set " +
+          "tokens.page in the style",
+      });
+    }
+  }
+}
+
 const _t1 = path.resolve(new URL("../../templates", import.meta.url).pathname);
 const BUNDLED_TEMPLATES = fs.existsSync(_t1)
   ? _t1
@@ -167,6 +196,7 @@ export async function doctorCommand(template: string, json: boolean): Promise<vo
     checkDeclarativeSlots(resolved, findings);
     checkTsSource(resolved, findings);
     checkDocumentShell(resolved, findings);
+    checkGeometryClash(resolved, findings);
   }
 
   const contract: LintContract = { schemaVersion: "1", ok: findings.length === 0, findings };

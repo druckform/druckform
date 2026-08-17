@@ -1,0 +1,6 @@
+name: geoclash
+description: "Fixture: document shell that clashes with the core geometry load."
+extends: base
+components:
+  document:
+    source: components/document.ts
