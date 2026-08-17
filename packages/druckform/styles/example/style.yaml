@@ -10,6 +10,9 @@ tokens:
     mono: "Liberation Mono"
   spacing:
     blockGap: "0.8em"
+  page:
+    size: a4
+    margin: "2.5cm"
 diagrams:
   mermaid:  { theme: "neutral" }
   plantuml: { skinRef: "skin.puml" }
