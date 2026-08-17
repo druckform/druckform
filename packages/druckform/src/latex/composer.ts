@@ -58,6 +58,7 @@ export function composeDocument(
       colors: styleConfig.tokens.colors ?? {},
       fonts: styleConfig.tokens.fonts ?? {},
       spacing: styleConfig.tokens.spacing ?? {},
+      page: styleConfig.tokens.page ?? {},
     },
     frontmatter,
   };

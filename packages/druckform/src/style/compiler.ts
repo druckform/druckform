@@ -5,6 +5,7 @@ export function extractTokens(config: StyleConfig): StyleTokens {
     colors: config.tokens.colors ?? {},
     fonts: config.tokens.fonts ?? {},
     spacing: config.tokens.spacing ?? {},
+    page: config.tokens.page ?? {},
   };
 }
 

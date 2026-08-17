@@ -55,10 +55,21 @@ export interface RenderContract {
 
 export type FontSpec = string | { name: string; options?: string };
 
+/** Page geometry tokens. Compiled to a `\geometry{…}` call, not to a \druckX macro. */
+export interface PageSpec {
+  size?: "a4" | "letter";
+  margin?: string;
+  top?: string;
+  bottom?: string;
+  left?: string;
+  right?: string;
+}
+
 export interface StyleTokens {
   colors: Record<string, string>; // name → #hex
   fonts: { main?: FontSpec; mono?: FontSpec };
   spacing: Record<string, string>; // name → css-length
+  page: PageSpec;
 }
 
 export interface StyleConfig {
@@ -67,6 +78,7 @@ export interface StyleConfig {
     colors?: Record<string, string>;
     fonts?: { main?: FontSpec; mono?: FontSpec };
     spacing?: Record<string, string>;
+    page?: PageSpec;
   };
   diagrams?: {
     mermaid?: {

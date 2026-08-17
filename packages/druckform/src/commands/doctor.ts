@@ -79,7 +79,7 @@ function checkDocumentShell(resolved: ResolvedTemplate, findings: Finding[]): vo
   if (!entry) return;
   const ctx: RenderCtx = {
     token: (n) => `\\druck${n.charAt(0).toUpperCase()}${n.slice(1)}`,
-    style: { colors: {}, fonts: {}, spacing: {} },
+    style: { colors: {}, fonts: {}, spacing: {}, page: {} },
     frontmatter: {},
     templateDir: entry.templateDir,
     asset: (ref) => path.join(entry.templateDir, ref),

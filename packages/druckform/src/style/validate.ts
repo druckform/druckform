@@ -55,6 +55,18 @@ export const STYLE_SCHEMA = {
           type: "object",
           additionalProperties: { type: "string" },
         },
+        page: {
+          type: "object",
+          properties: {
+            size: { enum: ["a4", "letter"] },
+            margin: { type: "string" },
+            top: { type: "string" },
+            bottom: { type: "string" },
+            left: { type: "string" },
+            right: { type: "string" },
+          },
+          additionalProperties: false,
+        },
       },
       additionalProperties: false,
     },
