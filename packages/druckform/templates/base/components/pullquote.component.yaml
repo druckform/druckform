@@ -20,7 +20,7 @@ emits: |
   \begin{druckpullquote}{{{accent}}}
   {{children}}
 
-  \hfill\normalsize\upshape{{attribution}}
+  \hfill\normalsize\upshape {{attribution}}
   \end{druckpullquote}
 example: |
   :::pullquote{attribution="Ada Lovelace"}
