@@ -22,11 +22,15 @@ interface ComposeResult {
 // Engine-core packages — always injected by the composer, never overrideable.
 // They are correctness requirements of the rendered output, not layout choices:
 //   fontspec (style fonts) · xcolor (style colors) · graphicx (images) ·
-//   hyperref (links) · ulem (strikethrough).
+//   geometry (page size/margins) · hyperref (links) · ulem (strikethrough).
 const ENGINE_CORE = [
   "\\usepackage{fontspec}",
   "\\usepackage{xcolor}",
   "\\usepackage{graphicx}",
+  // Loaded bare, with no options: the style preamble applies page setup via
+  // \geometry{…} afterwards, so a document shell can also call \geometry
+  // without triggering "Option clash for package geometry".
+  "\\usepackage{geometry}",
   "\\usepackage{hyperref}",
   "\\usepackage[normalem]{ulem}",
   // Default max heights for diagrams/images so tall graphics never overflow the

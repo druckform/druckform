@@ -69,3 +69,40 @@ describe("compileStyle fonts", () => {
     expect(out).toContain("\\setmonofont{JetBrains Mono}[Scale=0.9]");
   });
 });
+
+describe("page geometry", () => {
+  it("defaults to a4 when no page tokens are given", () => {
+    const out = compileStyle({ $schema: "style-v1", tokens: {} });
+    expect(out).toContain("\\geometry{a4paper}");
+  });
+
+  it("maps letter to letterpaper", () => {
+    const out = compileStyle({
+      $schema: "style-v1",
+      tokens: { page: { size: "letter" } },
+    });
+    expect(out).toContain("\\geometry{letterpaper}");
+  });
+
+  it("appends a uniform margin", () => {
+    const out = compileStyle({
+      $schema: "style-v1",
+      tokens: { page: { size: "a4", margin: "2.5cm" } },
+    });
+    expect(out).toContain("\\geometry{a4paper,margin=2.5cm}");
+  });
+
+  it("puts per-side margins after the uniform margin so they win", () => {
+    const out = compileStyle({
+      $schema: "style-v1",
+      tokens: { page: { margin: "2cm", top: "4cm" } },
+    });
+    // geometry applies options left to right; top= must follow margin=.
+    expect(out).toContain("\\geometry{a4paper,margin=2cm,top=4cm}");
+  });
+
+  it("never emits \\usepackage[...]{geometry} — the core loads it bare", () => {
+    const out = compileStyle({ $schema: "style-v1", tokens: { page: { size: "a4" } } });
+    expect(out).not.toMatch(/usepackage\[[^\]]*\]\{geometry\}/);
+  });
+});
