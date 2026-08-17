@@ -1,5 +1,7 @@
 ---
 template: report
+title: E2E Bundled Template Report
+toc: true
 ---
 
 # E2E Bundled Template Report
@@ -49,6 +51,42 @@ plain & code block
 ---
 
 ![Acme logo](logo.png)
+
+## Prose Library
+
+:::note{title="A note"}
+Note body.
+:::
+
+:::warning{title="A warning"}
+Warning body.
+:::
+
+:::danger{title="A danger"}
+Danger body.
+:::
+
+:::tip{title="A tip"}
+Tip body.
+:::
+
+::metadata{pairs="Client=Acme GmbH; Date=2026-08-17; Status=Draft"}
+
+:::pullquote{attribution="Ada Lovelace"}
+The Analytical Engine weaves algebraic patterns.
+:::
+
+::deflist{pairs="Token=A named style value; Template=A named set of components"}
+
+Status: :badge[DRAFT] with a footnote:footnote[Measured 2026-08-17.].
+
+:::figure{caption="A framed box" id="boxfig"}
+\rule{2cm}{1cm}
+:::
+
+See :ref[boxfig] for the box.
+
+::pagebreak
 
 ## Diagrams
 
