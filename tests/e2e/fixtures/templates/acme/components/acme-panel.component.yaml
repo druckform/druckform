@@ -1,0 +1,25 @@
+name: acme-panel
+description: "Container panel with a coloured title bar. Auto-discovered by name."
+form: container
+params:
+  title: { type: string, required: true }
+  accent: { type: token, required: false, default: acme }
+slots:
+  children: true
+preamble: |
+  \newenvironment{acmepanel}[2]{%
+    \par\vspace{0.6em}%
+    \noindent{#1\bfseries ACMEPANEL: #2}\par
+    \noindent\rule{\linewidth}{0.4pt}\par\smallskip
+    \noindent\ignorespaces
+  }{%
+    \par\vspace{0.6em}%
+  }
+emits: |
+  \begin{acmepanel}{{{accent}}}{{{title}}}
+  {{children}}
+  \end{acmepanel}
+example: |
+  :::acme-panel{title="Scope"}
+  Body text.
+  :::

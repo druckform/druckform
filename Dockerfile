@@ -75,7 +75,15 @@ COPY docker/tectonic-prewarm.tex /tmp/prewarm.tex
 RUN tectonic --untrusted --keep-logs /tmp/prewarm.tex \
     && rm -f /tmp/prewarm.tex /tmp/prewarm.pdf
 
-# Layer 3: PlantUML jar
+# Layer 3: mermaid-cli (provides `mmdc`) + PlantUML jar.
+# mermaid-cli drives Puppeteer; PUPPETEER_SKIP_DOWNLOAD stops it fetching its own
+# Chromium, since the apt chromium above is what PUPPETEER_EXECUTABLE_PATH points
+# at. Version pinned like Tectonic and PlantUML for reproducible builds.
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+RUN npm install -g --no-fund --no-audit @mermaid-js/mermaid-cli@11.16.0 \
+    && npm cache clean --force \
+    && mmdc --version
+
 COPY --from=builder /build/plantuml.jar /usr/local/lib/plantuml.jar
 
 # Layer 4: Bundled templates, styles, and schemas (change occasionally)

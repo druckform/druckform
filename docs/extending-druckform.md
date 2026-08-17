@@ -724,8 +724,6 @@ druck new component --template acme --name banner --format yaml
 
 The generated file appears at `<templateDir>/components/banner.ts` (or `.component.yaml`). For TS components the filename stem must match `meta.name` for auto-discovery to pick it up (doctor flags a mismatch). Explicit `template.yaml` entries still override auto-discovered ones for `defaults`/partial overrides/tombstones.
 
-> **Note for external template directories:** a TS-format component placed in an external `DRUCKFORM_TEMPLATES_DIR` only loads if `zod` and `@druckform/core` are resolvable from that directory's module path. Standalone external template directories should prefer YAML components (or keep TS components inside the repo where the packages are already installed).
-
 A component file lives under a template's directory and is either auto-discovered (see [§6.3](#63-the-extends-chain)) or registered in that template's `template.yaml` `components:` map.
 
 ### 5.1 Declarative component (`*.component.yaml`)
@@ -775,6 +773,11 @@ Notes:
 ### 5.2 TypeScript component (`*.ts`)
 
 A `.ts` component **must export** `schema`, `meta`, `render` (and optionally `preamble`). It is bundled with esbuild and imported at load time.
+
+> **Where a TS component may live.** `zod` and `@druckform/core` are resolved against the installed `@druckform/core` package, not against the component's own directory, so TS components load fine from a standalone external `DRUCKFORM_TEMPLATES_DIR` with no local `node_modules`. Two constraints do apply:
+>
+> - **Other bare imports stay external.** Only `zod` and `@druckform/core` are bundled in; anything else (`lodash`, say) is left as a runtime import and must be resolvable from the component's location. Standalone template directories should stick to the two blessed imports.
+> - **The directory must be writable.** Each component is bundled to a temporary `.druckform-tmp-*.mjs` file beside its source and removed afterwards, so a read-only templates directory (e.g. a `:ro` bind-mount) cannot load TS components. YAML components have neither constraint.
 
 Real example (`templates/report/components/callout.ts`):
 
@@ -1003,7 +1006,7 @@ Within any template directory, druckform scans the `components/` subdirectory an
 
 Explicit `template.yaml` component entries always take precedence over auto-discovered files, so you can still override `defaults:`, use partial `extends:`, or tombstone (`null`) an auto-discovered component from a parent template.
 
-> **Note for external template directories:** TS-format components in an external `DRUCKFORM_TEMPLATES_DIR` only load if `zod` and `@druckform/core` are resolvable from that directory's module path. Prefer YAML components in standalone external template directories (or keep TS components inside the repo where the packages are already installed).
+> **Note for external template directories:** TS components load fine from a standalone external `DRUCKFORM_TEMPLATES_DIR` — `zod` and `@druckform/core` are resolved against the installed `@druckform/core` package, not against the template directory, so no local `node_modules` is needed. See [§5.2](#52-typescript-component-ts) for the two constraints that do apply (other bare imports stay external; the directory must be writable).
 
 ### 6.3 The `extends` chain
 

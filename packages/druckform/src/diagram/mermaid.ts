@@ -16,6 +16,7 @@ export function renderMermaid(
   const svgFile = path.join(workDir, `mermaid-${index}.svg`);
   const pdfFile = path.join(workDir, `mermaid-${index}.pdf`);
   const configFile = path.join(workDir, `mermaid-${index}.config.json`);
+  const puppeteerFile = path.join(workDir, `mermaid-${index}.puppeteer.json`);
 
   fs.writeFileSync(inputFile, content, "utf8");
 
@@ -53,6 +54,17 @@ export function renderMermaid(
   }
   fs.writeFileSync(configFile, JSON.stringify(config), "utf8");
   args.push("-c", configFile);
+
+  // Puppeteer launch flags. Chromium's setuid sandbox cannot initialise as root,
+  // which is how the render runs inside the Docker image, so mmdc would fail with
+  // "Running as root without --no-sandbox is not supported". Harmless elsewhere.
+  // --disable-dev-shm-usage avoids crashes on the small default /dev/shm.
+  fs.writeFileSync(
+    puppeteerFile,
+    JSON.stringify({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }),
+    "utf8",
+  );
+  args.push("-p", puppeteerFile);
 
   const result = spawnSync("mmdc", args, { encoding: "utf8" });
   if (result.error && (result.error as NodeJS.ErrnoException).code === "ENOENT") {

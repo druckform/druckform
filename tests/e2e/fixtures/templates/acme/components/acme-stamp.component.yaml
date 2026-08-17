@@ -1,0 +1,13 @@
+name: acme-stamp
+description: "Single-line leaf directive stamping a status label."
+form: leaf
+params:
+  status: { type: string, required: false, default: "DRAFT" }
+slots:
+  # A leaf's [content] is parsed as a Markdown text child, so `children` is the
+  # slot it lands in.
+  children: true
+emits: |
+  \par\noindent\fbox{ACMESTAMP {{status}}: {{children}}}\par
+example: |
+  ::acme-stamp[Reviewed by QA]{status="FINAL"}

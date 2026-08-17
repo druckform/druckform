@@ -1,0 +1,33 @@
+name: acme
+description: "E2E custom template — exercises every template/component mechanism."
+extends: report
+frontmatter:
+  title: { type: string, required: true }
+  subtitle: { type: string, required: false, default: "Acme Internal" }
+style:
+  tokens:
+    colors:
+      acme: "#7A1F7A"
+components:
+  # Document-shell override (TS), reads frontmatter + a template-bundled asset.
+  document:
+    source: components/document.ts
+  # Built-in GFM override that needs the typed element payload → must be TS.
+  "block:table":
+    source: components/block-table.ts
+  # Built-in GFM override with no payload needs → declarative YAML is enough.
+  # block:* names are never auto-discovered, so this entry is mandatory.
+  "block:hr":
+    source: components/block-hr.component.yaml
+  # Partial override: keep base's source, change only the default token.
+  infobox:
+    extends: base.infobox
+    defaults:
+      accent: acme
+  # Tombstone: drop the callout that `report` contributes.
+  callout: null
+# Everything in components/ that is not named above is auto-discovered:
+#   acme-panel.component.yaml   → container (by its `name:` field)
+#   acme-stamp.component.yaml   → leaf
+#   acme-badge.component.yaml   → inline
+#   acme-logo.ts                → container (by filename stem)

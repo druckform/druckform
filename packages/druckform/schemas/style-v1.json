@@ -4,8 +4,32 @@
   "title": "Druckform Style v1",
   "type": "object",
   "required": ["tokens"],
+  "definitions": {
+    "fontSpec": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "options": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "tokens": {
       "type": "object",
       "properties": {
@@ -19,14 +43,20 @@
         "fonts": {
           "type": "object",
           "properties": {
-            "main": { "type": "string" },
-            "mono": { "type": "string" }
+            "main": {
+              "$ref": "#/definitions/fontSpec"
+            },
+            "mono": {
+              "$ref": "#/definitions/fontSpec"
+            }
           },
           "additionalProperties": false
         },
         "spacing": {
           "type": "object",
-          "additionalProperties": { "type": "string" }
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       },
       "additionalProperties": false
@@ -37,14 +67,28 @@
         "mermaid": {
           "type": "object",
           "properties": {
-            "theme": { "type": "string" },
-            "themeVariablesRef": { "type": "string" }
+            "theme": {
+              "type": "string"
+            },
+            "themeVariablesRef": {
+              "type": "string"
+            },
+            "themeVariables": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
           },
           "additionalProperties": false
         },
         "plantuml": {
           "type": "object",
-          "properties": { "skinRef": { "type": "string" } },
+          "properties": {
+            "skinRef": {
+              "type": "string"
+            }
+          },
           "additionalProperties": false
         }
       },

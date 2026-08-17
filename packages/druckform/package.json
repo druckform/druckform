@@ -34,7 +34,8 @@
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "schema:sync": "node scripts/sync-style-schema.mjs"
   },
   "dependencies": {
     "ajv": "^8.17.0",

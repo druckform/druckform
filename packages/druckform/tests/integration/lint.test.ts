@@ -54,4 +54,42 @@ describe("lint integration", () => {
 
     vi.restoreAllMocks();
   });
+
+  it("accepts the reserved `raw` directive (matches the composer, which handles it itself)", async () => {
+    const writes: string[] = [];
+    vi.spyOn(process.stdout, "write").mockImplementation((s) => {
+      writes.push(String(s));
+      return true;
+    });
+
+    await lintCommand("base", path.join(FIXTURES, "documents/raw-directive.md"), undefined, true);
+
+    const out = JSON.parse(writes.join(""));
+    expect(out.ok).toBe(true);
+    expect(out.findings).toEqual([]);
+
+    vi.restoreAllMocks();
+  });
+
+  it("rejects renderer-internal names used as a directive", async () => {
+    const writes: string[] = [];
+    vi.spyOn(process.stdout, "write").mockImplementation((s) => {
+      writes.push(String(s));
+      return true;
+    });
+    vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("exit");
+    });
+
+    await expect(
+      lintCommand("base", path.join(FIXTURES, "documents/internal-directive.md"), undefined, true),
+    ).rejects.toThrow("exit");
+
+    const out = JSON.parse(writes.join(""));
+    expect(out.ok).toBe(false);
+    expect(out.findings.map((f: { component: string }) => f.component)).toContain("document");
+    expect(out.findings[0].message).toMatch(/renderer-internal/);
+
+    vi.restoreAllMocks();
+  });
 });

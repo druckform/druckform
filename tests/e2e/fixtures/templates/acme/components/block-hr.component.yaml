@@ -1,0 +1,11 @@
+name: "block:hr"
+description: "Acme horizontal rule — accent-coloured, thicker than base."
+params:
+  colour: { type: token, required: false, default: acme }
+slots:
+  children: false
+# The colour macro is a \color switch, so it must be grouped WITH the rule:
+# "{{{colour}}\rule…}" expands to "{\druckAcme\rule…}".
+emits: |
+  \par\vspace{0.4em}{{{colour}}\rule{\linewidth}{1.2pt}}\par\vspace{0.4em}
+  \noindent ACMEHR\par

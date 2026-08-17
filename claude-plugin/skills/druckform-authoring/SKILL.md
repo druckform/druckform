@@ -124,7 +124,7 @@ the bare name (`druck<Name>`, capitalize-first) instead.
 
 `.ts` components are bundled with esbuild and imported at load time, no separate build step. `z` and `tokenRef` are both re-exported from `@druckform/core`, so schema and helpers come from one import (`import { z } from "zod"` also works).
 
-**Gotcha for user templates:** a `.ts` component under an external `$DRUCKFORM_TEMPLATES_DIR` only loads if `zod` and `@druckform/core` are resolvable from that directory's module path. A standalone template dir with no local `node_modules` silently fails to load TS components. Options, in order of preference: use declarative YAML components in standalone external dirs (no dependency), keep TS components inside the repo where the packages are installed, or install the packages beside the templates dir. YAML components have none of this constraint.
+**User templates:** `.ts` components load fine from an external `$DRUCKFORM_TEMPLATES_DIR` with no local `node_modules` — `zod` and `@druckform/core` are resolved against the installed `@druckform/core` package, not the template dir. Two real constraints: only those two bare imports are bundled in (anything else stays an external runtime import, so avoid other deps in standalone template dirs), and the templates dir must be **writable**, because each TS component is bundled to a temporary `.druckform-tmp-*.mjs` beside its source. A read-only templates dir loads YAML components but not TS ones.
 
 ## Declarative Component Contract (`*.component.yaml`)
 

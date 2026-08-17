@@ -20,6 +20,21 @@ const BUNDLED_TEMPLATES = fs.existsSync(_t1)
 function lintNodes(nodes: ASTNode[], resolved: ResolvedTemplate, findings: Finding[]): void {
   for (const node of nodes) {
     if (node.type !== "component") continue;
+    // `raw` is a reserved directive the composer handles itself; it is never a
+    // registered component, so name/param validation must skip it (mirrors the
+    // `block.name === "raw"` branch in latex/composer.ts).
+    if (node.block.name === "raw") continue;
+    // Renderer-internal names cannot be invoked as a directive, even though they
+    // ARE registered components — the composer throws on them, so lint must too.
+    if (node.block.name === "document" || node.block.name.startsWith("block:")) {
+      findings.push({
+        severity: "error",
+        component: node.block.name,
+        message: `Component '${node.block.name}' is renderer-internal and cannot be used as a directive`,
+        line: node.block.sourceLine,
+      });
+      continue;
+    }
     // Validate component name
     if (!resolved.components[node.block.name]) {
       findings.push({
