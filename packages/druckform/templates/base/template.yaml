@@ -58,3 +58,7 @@ components:
     source: components/block-table.ts
   "block:list":
     source: components/block-list.ts
+  figure:
+    source: components/figure.ts
+  ref:
+    source: components/ref.component.yaml
