@@ -12,6 +12,15 @@ style:
     page:
       size: a4
       margin: "2.5cm"
+frontmatter:
+  # All optional and all strings — the parser coerces every YAML scalar with
+  # String(v), so `toc: true` arrives as "true".
+  title:    { type: string, required: false }
+  subtitle: { type: string, required: false }
+  author:   { type: string, required: false }
+  date:     { type: string, required: false }
+  cover:    { type: string, required: false, default: "false" }
+  toc:      { type: string, required: false, default: "false" }
 components:
   document:
     source: components/document.ts
