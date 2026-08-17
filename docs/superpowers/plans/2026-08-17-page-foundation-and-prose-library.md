@@ -1207,8 +1207,13 @@ export const meta = { name: "document", description: "Document shell", acceptsCh
 // goes. It does NOT emit \documentclass or the engine packages (fontspec,
 // xcolor, graphicx, geometry, hyperref, ulem) — the composer injects those and
 // they are not overrideable. Page size/margins come from tokens.page via the
-// style preamble; a shell that wants different geometry calls \geometry{...},
-// never \usepackage[...]{geometry} (that clashes — doctor flags it).
+// style preamble; a shell that wants different geometry calls \geometry{...}
+// and never loads the geometry package again with options (that is an Option
+// clash — doctor flags it).
+//
+// NOTE: do not spell the bracketed package-load form out in a comment here.
+// doctor's geometry check scans raw component source, comments included, so
+// writing it literally makes this file flag itself.
 
 /** Title block, rendered only when a `title` is supplied. */
 function titleBlock(fm: Record<string, string>): string[] {
