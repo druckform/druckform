@@ -62,3 +62,9 @@ components:
     source: components/figure.ts
   ref:
     source: components/ref.component.yaml
+  pagebreak:
+    source: components/pagebreak.component.yaml
+  pullquote:
+    source: components/pullquote.component.yaml
+  deflist:
+    source: components/deflist.ts
