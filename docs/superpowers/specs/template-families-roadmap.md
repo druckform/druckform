@@ -221,6 +221,12 @@ Consulting took 2h20m wall clock: 81.5 min of implementers, 34.7 min of task rev
   implementers do not have to deviate and then justify it.
 - **Use the cheapest model when the plan contains the complete code.** The one haiku task
   was the fastest implementer of the run and reviewed clean.
+- **The "known flake" tax is paid.** `prewarm-sync` and `lint` timed out sporadically under
+  the parallel pool, and every implementer and reviewer in the run had to notice it,
+  re-run standalone, and explain it. The cause was vitest's 5s default applied to
+  integration tests that esbuild-transpile every component of every bundled template;
+  the timeout is now 30s (`2da6679`). Adding a template to `prewarm-sync` costs it roughly
+  +700ms, so the budget matters more with each family.
 
 Expect ~1h15–1h30 for a comparable family. Do not cut the real-render verification: every
 genuine bug in this run passed its unit tests and died to a render.
