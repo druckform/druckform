@@ -132,4 +132,76 @@ The figure is provisional:footnote[Measured on 2026-08-17.].
 
 ---
 
-Copy `fancy-table` into your template's `components/`, rename `meta.name`, run `druck doctor` and `druck preview-component`. For the prose library components above, run `druck components --template base --json` to confirm the exact params for the version you have installed.
+The sections below are the `consulting` template's own components (it extends `base`, so it also has everything above). Each snippet is copied verbatim from that component's `example`/`meta.example`.
+
+## finding
+
+From `consulting`'s `components/finding.ts` (`meta.example`):
+
+```
+:::finding{severity="high" id="F-01" title="Secrets recoverable from CI logs"}
+:::impact
+Credentials are recoverable by anyone with read access.
+:::
+:::
+```
+
+## impact
+
+From `consulting`'s `components/impact.component.yaml` (`example`):
+
+```
+:::impact
+Credentials are recoverable by anyone with read access.
+:::
+```
+
+## evidence
+
+From `consulting`'s `components/evidence.component.yaml` (`example`):
+
+```
+:::evidence
+- `.github/workflows/deploy.yml:42` echoes `$DEPLOY_TOKEN`
+:::
+```
+
+## recommendation
+
+From `consulting`'s `components/recommendation.component.yaml` (`example`):
+
+```
+:::recommendation
+Mask the variable in CI and rotate the token.
+:::
+```
+
+## findings-summary
+
+From `consulting`'s `components/findings-summary.component.yaml` (`example`):
+
+```
+::findings-summary
+```
+
+## exec-summary
+
+From `consulting`'s `components/exec-summary.component.yaml` (`example`):
+
+```
+:::exec-summary
+The engagement identified three issues, one of them high severity.
+:::
+```
+
+## appendix
+
+From `consulting`'s `components/appendix.component.yaml` (`example`):
+
+```
+::appendix
+```
+
+---
+
+Copy `fancy-table` into your template's `components/`, rename `meta.name`, run `druck doctor` and `druck preview-component`. For the prose library components above, run `druck components --template base --json` (or `--template consulting --json` for the finding family) to confirm the exact params for the version you have installed.

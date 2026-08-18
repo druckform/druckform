@@ -24,6 +24,26 @@ const HEADINGS: Record<string, string> = {
   metadata: "## metadata",
   badge: "## badge",
   footnote: "## footnote",
+  finding: "## finding",
+  impact: "## impact",
+  evidence: "## evidence",
+  recommendation: "## recommendation",
+  "findings-summary": "## findings-summary",
+  "exec-summary": "## exec-summary",
+  appendix: "## appendix",
+};
+
+// Components introduced by a family other than `examples`/`base` aren't part
+// of the resolved `examples` template, so their gallery snippet is checked
+// against the template that actually declares them.
+const TEMPLATE_FOR: Record<string, string> = {
+  finding: "consulting",
+  impact: "consulting",
+  evidence: "consulting",
+  recommendation: "consulting",
+  "findings-summary": "consulting",
+  "exec-summary": "consulting",
+  appendix: "consulting",
 };
 
 function extractFence(markdown: string, heading: string): string {
@@ -47,10 +67,12 @@ describe("examples gallery: no drift from meta.example", () => {
       const markdown = fs.readFileSync(GALLERY, "utf8");
       const gallerySnippet = extractFence(markdown, HEADINGS[name] as string).trim();
 
+      const templateName = TEMPLATE_FOR[name] ?? "examples";
       const all = loadAllTemplates(BUNDLED, undefined);
-      const resolved = await resolveTemplate("examples", all);
+      const resolved = await resolveTemplate(templateName, all);
       const entry = resolved.components[name];
-      if (!entry) throw new Error(`component '${name}' not found in resolved 'examples' template`);
+      if (!entry)
+        throw new Error(`component '${name}' not found in resolved '${templateName}' template`);
       const resolvedExample = (entry.example ?? entry.def.meta.example ?? "").trim();
 
       expect(gallerySnippet).toBe(resolvedExample);

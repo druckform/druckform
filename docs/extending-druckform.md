@@ -498,6 +498,14 @@ export function render(_p: unknown, _c: string, ctx: RenderCtx, el?: BlockElemen
 (This example omits `componentPreamble` and the engine-core packages for brevity;
 a real shell must still emit `el.componentPreamble` per [§6.5](#65-overriding-the-document-shell-page-layout).)
 
+### 3.6 Cross-references (`figure` / `ref`)
+
+`ref` (`templates/base/components/ref.ts`) is the inline cross-reference: `:ref[arch]` emits `\ref{fig:arch}`. Which namespace it targets is `params.kind`, a zod enum (`z.enum(["fig", "finding"]).default("fig")`), not a free string — a typo'd kind would otherwise produce a dangling `\ref` that LaTeX renders as `??` with only a warning, rather than a lint-time error.
+
+`kind` is an enum each template family extends when it introduces its own referenceable thing: `consulting`'s `finding` component adds the `"finding"` case, so `:ref[F-01]{kind=finding}` emits `\ref{finding:F-01}`. Because a finding's id is author-assigned rather than a LaTeX counter, `\ref` there prints the id itself back (`F-01`), not a page number — page numbers for findings are what `::findings-summary` lists, via the ordinary `\pageref` machinery underneath `\@starttoc`.
+
+Both sides of a label go through `sanitizeLabelId` (`@druckform/core`) — `figure`/`finding` when they emit `\label{...}`, `ref` when it emits `\ref{...}` — so the two agree on the same sanitised identifier even if the author's id contains characters LaTeX can't use in a label.
+
 ---
 
 ## 4. Styles (`style.yaml`)
@@ -988,7 +996,7 @@ components:
 loadAllTemplates(BUNDLED_TEMPLATES, process.env.DRUCKFORM_TEMPLATES_DIR)
 ```
 
-- **Bundled**: shipped under the package's `templates/` dir (e.g. `base`, `report`).
+- **Bundled**: shipped under the package's `templates/` dir (`base`; `report`, which extends it; `examples`; and `consulting`, which extends `base` with `finding`/`impact`/`evidence`/`recommendation`, `findings-summary`, `exec-summary` and `appendix` for client-facing reports).
 - **User**: every immediate subdirectory of `$DRUCKFORM_TEMPLATES_DIR` that contains a `template.yaml`.
 
 So to add your own templates without forking the package:
