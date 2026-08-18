@@ -19,7 +19,7 @@ describe("document shell override (TS)", () => {
 
     // custom shell applied
     expect(tex).toContain("%CUSTOMDOC");
-    expect(tex).toContain("\\usepackage[a4paper]{geometry}");
+    expect(tex).toContain("\\geometry{a4paper}");
     // engine core still composer-injected (non-overridable)
     expect(tex.startsWith("\\documentclass{article}")).toBe(true);
     expect(tex).toContain("\\usepackage[normalem]{ulem}");

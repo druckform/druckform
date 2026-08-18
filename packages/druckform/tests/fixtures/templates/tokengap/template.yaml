@@ -1,0 +1,6 @@
+name: tokengap
+description: "Fixture: a component requiring a token that base does not default, for exercising the token-coverage failure path."
+extends: base
+components:
+  gap:
+    source: components/gap.ts

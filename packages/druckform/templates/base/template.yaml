@@ -2,13 +2,73 @@ name: base
 description: "Base template — foundational components for all documents."
 style:
   tokens:
+    # Every token any bundled component declares as required must have a default
+    # here, so a hand-written style that omits one gets a sensible colour instead
+    # of a "Missing required style token" error. Users override freely via --style.
     colors:
       accent: "#2E5AAC"
+      warning: "#B26A00"
+      danger: "#B00020"
+    page:
+      size: a4
+      margin: "2.5cm"
+frontmatter:
+  # All optional and all strings — the parser coerces every YAML scalar with
+  # String(v), so `toc: true` arrives as "true".
+  title:    { type: string, required: false }
+  subtitle: { type: string, required: false }
+  author:   { type: string, required: false }
+  date:     { type: string, required: false }
+  cover:    { type: string, required: false, default: "false" }
+  toc:      { type: string, required: false, default: "false" }
 components:
   document:
     source: components/document.ts
+  callout:
+    source: components/callout.ts
+  # Friendly names over one implementation. `:::warning` matches the
+  # MkDocs/Docusaurus convention, so it is guessable without reading docs.
+  note:
+    extends: base.callout
+    defaults: { variant: info }
+    description: "Info-styled callout box with a title. Alias of callout{variant=\"info\"}."
+    example: |
+      :::note{title="FYI"}
+      Body
+      :::
+  tip:
+    extends: base.callout
+    defaults: { variant: tip }
+    description: "Tip-styled callout box with a title. Alias of callout{variant=\"tip\"}."
+    example: |
+      :::tip{title="Handy"}
+      Body
+      :::
+  warning:
+    extends: base.callout
+    defaults: { variant: warn }
+    description: "Warning-styled callout box with a title. Alias of callout{variant=\"warn\"}."
+    example: |
+      :::warning{title="Careful"}
+      Body
+      :::
+  danger:
+    extends: base.callout
+    defaults: { variant: danger }
+    description: "Danger-styled callout box with a title. Alias of callout{variant=\"danger\"}."
+    example: |
+      :::danger{title="Stop"}
+      Body
+      :::
+  # Back-compat alias for the original component name.
   infobox:
-    source: components/infobox.component.yaml
+    extends: base.callout
+    defaults: { variant: info }
+    description: "Info-styled callout box with a title. Back-compat alias of callout{variant=\"info\"}."
+    example: |
+      :::infobox{title="FYI"}
+      Body
+      :::
   "block:heading":
     source: components/block-heading.ts
   "block:blockquote":
@@ -23,3 +83,19 @@ components:
     source: components/block-table.ts
   "block:list":
     source: components/block-list.ts
+  figure:
+    source: components/figure.ts
+  ref:
+    source: components/ref.ts
+  pagebreak:
+    source: components/pagebreak.component.yaml
+  pullquote:
+    source: components/pullquote.component.yaml
+  deflist:
+    source: components/deflist.ts
+  metadata:
+    source: components/metadata.ts
+  badge:
+    source: components/badge.component.yaml
+  footnote:
+    source: components/footnote.component.yaml

@@ -73,6 +73,14 @@ assert_pdf() {
   [ "$pages" -ge "$minPages" ] || fail "$(basename "$pdf"): $pages page(s), expected >= $minPages"
   echo "  ok  $(basename "$pdf"): valid PDF, $pages page(s)"
 
+  # Paper size is a silent failure mode: the bundled templates emitted US Letter
+  # for a long time because nothing set geometry and article defaults to
+  # letterpaper. Nobody notices until it reaches a printer.
+  local papersize
+  papersize="$(pdfinfo "$pdf" | awk -F'[()]' '/^Page size:/ {print $2}')"
+  [ "$papersize" = "A4" ] || fail "$(basename "$pdf"): page size is '$papersize', expected A4"
+  echo "  ok  $(basename "$pdf"): A4"
+
   local txt="$OUT/$(basename "${pdf%.pdf}").txt"
   pdftotext "$pdf" "$txt"
 
@@ -93,7 +101,7 @@ assert_pdf() {
 # it reaches the PDF, the placeholder substitution regressed (this has shipped
 # broken once already). ':::' or '\begin{' in the text layer means a directive
 # or component silently failed to render.
-UNIVERSAL_FORBIDDEN=(DRUCKFORMDIAGRAM ":::" "\\begin{")
+UNIVERSAL_FORBIDDEN=(DRUCKFORMDIAGRAM ":::" "\\begin{" "??")
 
 mkdir -p "$OUT"
 
@@ -242,6 +250,8 @@ assert_pdf "$OUT/report.pdf" 1 \
   "plain & code block" \
   "RawLatexMarker" \
   "10:30" "localhost:8080" \
+  "A note" "A warning" "A danger" "A tip" \
+  "Acme GmbH" "Analytical Engine" "DRAFT" "A framed box" \
   -- "${UNIVERSAL_FORBIDDEN[@]}"
 
 # Diagram labels are real glyphs in the output, not raster: mermaid.ts forces
@@ -251,6 +261,22 @@ assert_pdf "$OUT/report.pdf" 1 \
 banner "Both diagram engines produced text-bearing graphics"
 assert_contains "mermaid labels" "$OUT/report.txt" "Start" "Decision" "Accept" "Reject"
 assert_contains "plantuml labels" "$OUT/report.txt" "Alice" "Bob" "Hello"
+
+banner "The image renders with no network access"
+# The prewarm doc must cache every package a bundled render pulls, or documents
+# fail outright in an offline or sandboxed environment.
+# --engine local (rather than the default auto): we're already running the
+# image's own toolchain directly, and --network none rules out a docker relay
+# anyway. This also keeps engine-probe chatter off stdout, since --json's
+# output must stay pure JSON for assert_json to parse.
+docker run --rm --network none \
+  -v "$WORK:$WORK" -w "$WORK" "$IMAGE" \
+  render --engine local --template report --in document.md --style style.yaml \
+  --assets assets --out "$WORK/out/offline.pdf" --json \
+  > "$OUT/render-offline.json" 2>&1 \
+  || { cat "$OUT/render-offline.json" >&2; fail "offline render failed — prewarm cache incomplete"; }
+assert_json "offline render contract" "$OUT/render-offline.json" \
+  "d.status === 'ok'"
 
 # --- 5. render: custom template through DRUCKFORM_TEMPLATES_DIR --------------
 

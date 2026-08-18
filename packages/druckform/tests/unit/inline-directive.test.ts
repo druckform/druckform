@@ -37,4 +37,13 @@ describe("inline directives", () => {
   it("throws on a structurally-fired but unregistered inline name", () => {
     expect(() => render(":nope[x]")).toThrow(/nope/);
   });
+  it("applies a registration's defaults on the inline render path (M6)", () => {
+    // "urgent" is an inline alias of "loud" with default { tone: urgent }.
+    // Without merging that default in, the underlying component's own zod
+    // default ("normal") would win instead.
+    expect(render(":urgent[NEW]")).toContain("\\fbox{[urgent] NEW}");
+  });
+  it("still lets an explicit param override the alias's default", () => {
+    expect(render(":urgent[NEW]{tone=critical}")).toContain("\\fbox{[critical] NEW}");
+  });
 });

@@ -79,7 +79,7 @@ function checkDocumentShell(resolved: ResolvedTemplate, findings: Finding[]): vo
   if (!entry) return;
   const ctx: RenderCtx = {
     token: (n) => `\\druck${n.charAt(0).toUpperCase()}${n.slice(1)}`,
-    style: { colors: {}, fonts: {}, spacing: {} },
+    style: { colors: {}, fonts: {}, spacing: {}, page: {} },
     frontmatter: {},
     templateDir: entry.templateDir,
     asset: (ref) => path.join(entry.templateDir, ref),
@@ -109,6 +109,38 @@ function checkDocumentShell(resolved: ResolvedTemplate, findings: Finding[]): vo
       message:
         "document shell must emit the body marker DRUCKFORM_BODY (declarative: {{body}}); the composer substitutes the rendered body there",
     });
+  }
+}
+
+// The engine core loads geometry bare so styles can apply page setup via
+// \geometry{…}. A component loading it again WITH options triggers LaTeX's
+// "Option clash for package geometry", which surfaces as an opaque compile
+// failure with no hint about the cause — so name it here instead.
+// Matches both a .ts source (where the literal is escaped, \\usepackage) and a
+// declarative `emits:` block (single backslash); \usepackage or \RequirePackage;
+// optional whitespace before the option group; and a comma-separated multi-package
+// brace group (e.g. \usepackage[a4paper]{geometry,fancyhdr}).
+export const GEOMETRY_CLASH =
+  /\\{1,2}(?:usepackage|RequirePackage)\s*\[[^\]]*\]\s*\{[^}]*\bgeometry\b[^}]*\}/;
+
+function checkGeometryClash(resolved: ResolvedTemplate, findings: Finding[]): void {
+  for (const [name, entry] of Object.entries(resolved.components)) {
+    let src: string;
+    try {
+      src = fs.readFileSync(entry.sourcePath, "utf8");
+    } catch {
+      continue;
+    }
+    if (GEOMETRY_CLASH.test(src)) {
+      findings.push({
+        severity: "error",
+        component: name,
+        message:
+          "loads geometry with options (\\usepackage[...]{geometry}), which clashes " +
+          "with the engine core's bare load — use \\geometry{...} instead, or set " +
+          "tokens.page in the style",
+      });
+    }
   }
 }
 
@@ -167,6 +199,7 @@ export async function doctorCommand(template: string, json: boolean): Promise<vo
     checkDeclarativeSlots(resolved, findings);
     checkTsSource(resolved, findings);
     checkDocumentShell(resolved, findings);
+    checkGeometryClash(resolved, findings);
   }
 
   const contract: LintContract = { schemaVersion: "1", ok: findings.length === 0, findings };

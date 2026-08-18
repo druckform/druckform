@@ -1,10 +1,33 @@
-import type { StyleConfig, StyleTokens } from "../sdk/types.js";
+import type { PageSpec, StyleConfig, StyleTokens } from "../sdk/types.js";
+
+const PAPER_OPTION: Record<NonNullable<PageSpec["size"]>, string> = {
+  a4: "a4paper",
+  letter: "letterpaper",
+};
+
+/**
+ * Page tokens become a `\geometry{…}` call, not a `\usepackage[…]{geometry}`:
+ * geometry raises "Option clash" if loaded twice with options, and document
+ * shells are free to load it. The engine core loads it bare; this applies the
+ * options afterwards. Per-side values are emitted after `margin` because
+ * geometry honours the last option it sees.
+ */
+export function compilePageGeometry(page: PageSpec = {}): string {
+  const opts: string[] = [PAPER_OPTION[page.size ?? "a4"]];
+  if (page.margin) opts.push(`margin=${page.margin}`);
+  for (const side of ["top", "bottom", "left", "right"] as const) {
+    const value = page[side];
+    if (value) opts.push(`${side}=${value}`);
+  }
+  return `\\geometry{${opts.join(",")}}`;
+}
 
 export function extractTokens(config: StyleConfig): StyleTokens {
   return {
     colors: config.tokens.colors ?? {},
     fonts: config.tokens.fonts ?? {},
     spacing: config.tokens.spacing ?? {},
+    page: config.tokens.page ?? {},
   };
 }
 
@@ -24,6 +47,8 @@ export function compileStyle(config: StyleConfig): string {
     // Also define a convenience alias macro \druckAccentColor
     lines.push(`\\newcommand{\\${macroName}}{\\color{${macroName}}}`);
   }
+
+  lines.push(compilePageGeometry(config.tokens.page));
 
   // Fonts (requires fontspec package in document preamble). A font token may be
   // a bare name or { name, options } — options are spliced as \setmainfont{n}[opts]

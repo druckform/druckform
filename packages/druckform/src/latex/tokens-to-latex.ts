@@ -198,7 +198,11 @@ function renderInlineChildren(children: Token[], opts: EmitOpts): string {
             `Unknown inline component ':${name}' — no registered component with form "inline" in template '${opts.template.name}'.`,
           );
         }
-        out += entry.def.render(params, inner, opts.ctx);
+        // Merge registration defaults before explicit params, mirroring
+        // composer.ts's block-level render path — an inline alias (e.g. of
+        // badge/footnote/ref) must honour its own defaults too.
+        const mergedParams = { ...entry.defaults, ...params };
+        out += entry.def.render(mergedParams, inner, opts.ctx);
         break;
       }
       case "text":

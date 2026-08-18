@@ -91,3 +91,31 @@ describe("style schema: fonts accept the FontSpec object form", () => {
     expect(() => loadStyle(p)).toThrow(/Invalid style\.yaml/);
   });
 });
+
+describe("style schema: page tokens", () => {
+  it("accepts a4 with a uniform margin", () => {
+    const p = writeStyle({
+      $schema: "style-v1",
+      tokens: { page: { size: "a4", margin: "2.5cm" } },
+    });
+    expect(loadStyle(p).tokens.page).toEqual({ size: "a4", margin: "2.5cm" });
+  });
+
+  it("accepts letter and per-side margins", () => {
+    const p = writeStyle({
+      $schema: "style-v1",
+      tokens: { page: { size: "letter", top: "3cm", bottom: "2cm" } },
+    });
+    expect(loadStyle(p).tokens.page?.size).toBe("letter");
+  });
+
+  it("rejects an unknown paper size rather than falling back", () => {
+    const p = writeStyle({ $schema: "style-v1", tokens: { page: { size: "a5" } } });
+    expect(() => loadStyle(p)).toThrow(/Invalid style\.yaml/);
+  });
+
+  it("rejects an unknown key inside page", () => {
+    const p = writeStyle({ $schema: "style-v1", tokens: { page: { bleed: "3mm" } } });
+    expect(() => loadStyle(p)).toThrow(/Invalid style\.yaml/);
+  });
+});

@@ -18,6 +18,7 @@ export function mergeStyle(
       colors: { ...(b.colors ?? {}), ...(o.colors ?? {}) },
       fonts: { ...(b.fonts ?? {}), ...(o.fonts ?? {}) },
       spacing: { ...(b.spacing ?? {}), ...(o.spacing ?? {}) },
+      page: { ...(b.page ?? {}), ...(o.page ?? {}) },
     },
   };
   const diagrams = { ...(base?.diagrams ?? {}), ...(over?.diagrams ?? {}) };

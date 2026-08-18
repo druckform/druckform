@@ -100,6 +100,15 @@ Children content (Markdown, may contain nested components)
 
 Frontmatter values are available to components (e.g. a title block). A template may declare which frontmatter fields it accepts (and which are required) — `druck lint` reports missing required fields.
 
+`base` (and every template extending it) accepts these optional frontmatter fields, all strings (`toc: true` in YAML arrives as the string `"true"`):
+
+| Field | Effect |
+|-------|--------|
+| `title` | Renders a centered title block. Omit it and no title block is emitted at all. |
+| `subtitle`, `author`, `date` | Extra lines under the title (each only shown if `title` is set). |
+| `cover` | `"true"` puts the title block on its own page, vertically centered. |
+| `toc` | `"true"` inserts a table of contents right after the title block. |
+
 Components can be nested:
 
 ```markdown
@@ -110,6 +119,32 @@ Nested content.
 :::
 :::
 ```
+
+## Admonitions
+
+`base` ships a `callout` component with friendly aliases for the common variants — all container form, all take a required `title` and an optional `accent` (a style token name overriding the variant's colour):
+
+```markdown
+:::note{title="FYI"}
+Body
+:::
+
+:::tip{title="Pro tip"}
+Body
+:::
+
+:::warning{title="Heads up"}
+Body
+:::
+
+:::danger{title="Stop"}
+Body
+:::
+```
+
+`callout` itself also takes a `variant` param (`info`|`tip`|`warn`|`danger`) if invoked directly instead of through an alias. `infobox` is a back-compat alias (`variant="info"`) kept for older documents.
+
+`base` also ships `figure` (captioned container, `caption` + optional `id`), `ref` (inline cross-reference, `:ref[id]`), `pagebreak` (leaf, no params), `pullquote` (container, optional `attribution`/`accent`), `deflist` and `metadata` (leaf key/value blocks, `pairs="Key=Value; …"`), `badge` (inline, `:badge[TEXT]`) and `footnote` (inline, `word:footnote[note text]`). Run `druck components -t base --json` for the authoritative param list and each one's `example` field.
 
 Run `druck components -t <template>` to get each component's exact parameter names, types, required status, and a working example.
 
@@ -158,12 +193,15 @@ tokens:
     mono: "JetBrains Mono"
   spacing:
     blockGap: "0.8em"
+  page:
+    size: a4      # a4 | letter — default a4
+    margin: "2.5cm"
 diagrams:
   mermaid:  { theme: "neutral" }
   plantuml: { skinRef: "skin.puml" }  # path relative to assets/
 ```
 
-All color values must be `#RRGGBB` (6 hex digits). The `tokens` block is required. `diagrams` is optional.
+All color values must be `#RRGGBB` (6 hex digits). The `tokens` block is required. `diagrams` is optional. `page` is optional; `size` defaults to `a4` — bundled templates render US Letter only if you explicitly set `size: letter`. `margin` sets all four sides; per-side `top`/`bottom`/`left`/`right` override it individually. Page setup compiles to `\geometry{…}`; a custom `document` shell override must call `\geometry{...}` too, never `\usepackage[...]{geometry}` (LaTeX's "Option clash" — `druck doctor` reports it).
 
 ## Error Handling
 

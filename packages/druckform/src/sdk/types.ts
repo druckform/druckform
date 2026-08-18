@@ -35,6 +35,8 @@ export interface ComponentsContract {
     contractVersion: string;
     example?: string;
     source?: string; // raw component source text
+    /** Param defaults this registration applies, e.g. an alias like `note: { extends: base.callout, defaults: { variant: info } }`. */
+    defaults: Record<string, string>;
   }>;
 }
 
@@ -55,10 +57,21 @@ export interface RenderContract {
 
 export type FontSpec = string | { name: string; options?: string };
 
+/** Page geometry tokens. Compiled to a `\geometry{…}` call, not to a \druckX macro. */
+export interface PageSpec {
+  size?: "a4" | "letter";
+  margin?: string;
+  top?: string;
+  bottom?: string;
+  left?: string;
+  right?: string;
+}
+
 export interface StyleTokens {
   colors: Record<string, string>; // name → #hex
   fonts: { main?: FontSpec; mono?: FontSpec };
   spacing: Record<string, string>; // name → css-length
+  page: PageSpec;
 }
 
 export interface StyleConfig {
@@ -67,6 +80,7 @@ export interface StyleConfig {
     colors?: Record<string, string>;
     fonts?: { main?: FontSpec; mono?: FontSpec };
     spacing?: Record<string, string>;
+    page?: PageSpec;
   };
   diagrams?: {
     mermaid?: {
@@ -172,6 +186,10 @@ export interface ComponentOverrideSpec {
   source?: string; // path to .ts or .component.yaml (relative to template dir)
   extends?: string; // "parentTemplate.componentName" — type-a partial override only
   defaults?: Record<string, string>;
+  /** Overrides the underlying component's meta.description in the components contract. */
+  description?: string;
+  /** Overrides the underlying component's meta.example in the components contract. */
+  example?: string;
 }
 
 /** Per-field frontmatter declaration (validated like component params). */
@@ -196,6 +214,10 @@ export interface ResolvedComponentEntry {
   defaults: Record<string, string>; // merged param defaults from inheritance chain
   sourcePath: string; // absolute path to the component's source file
   templateDir: string; // absolute root dir of the template that defines this component
+  /** Registration override for meta.description, e.g. an alias's own blurb. */
+  description?: string;
+  /** Registration override for meta.example, e.g. an alias's own copy-pasteable snippet. */
+  example?: string;
 }
 
 export interface ResolvedTemplate {

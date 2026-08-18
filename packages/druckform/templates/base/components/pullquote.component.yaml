@@ -1,0 +1,28 @@
+name: pullquote
+description: "Emphasised quotation, optionally attributed."
+form: container
+params:
+  attribution: { type: string, required: false, default: "" }
+  accent: { type: token, required: false, default: accent }
+slots:
+  children: true
+# `quote` is a LaTeX built-in; this only adds an accent rule and larger text, so
+# no extra package is needed.
+preamble: |
+  \newenvironment{druckpullquote}[1]{%
+    \par\vspace{0.8em}%
+    \noindent{#1\rule{2pt}{1.1em}}\hspace{0.6em}%
+    \begin{minipage}{0.92\linewidth}\itshape\large\ignorespaces
+  }{%
+    \end{minipage}\par\vspace{0.8em}%
+  }
+emits: |
+  \begin{druckpullquote}{{{accent}}}
+  {{children}}
+
+  \hfill\normalsize\upshape {{attribution}}
+  \end{druckpullquote}
+example: |
+  :::pullquote{attribution="Ada Lovelace"}
+  The Analytical Engine weaves algebraic patterns.
+  :::

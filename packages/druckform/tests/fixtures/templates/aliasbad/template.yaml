@@ -1,0 +1,6 @@
+name: aliasbad
+description: "Fixture: extends target that does not exist."
+extends: base
+components:
+  thing:
+    extends: base.doesNotExist

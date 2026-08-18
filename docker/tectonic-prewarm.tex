@@ -1,8 +1,36 @@
+% Pre-warms Tectonic's package cache at image build time. It must load every
+% package a bundled render can pull in, or the first real render reaches out to
+% the network — and fails outright in an offline/sandboxed environment.
+% Keep in sync with ENGINE_CORE in src/latex/composer.ts and with the
+% `preamble` exports of the bundled components.
 \documentclass{article}
+% Engine core (composer.ts ENGINE_CORE)
 \usepackage{fontspec}
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{geometry}
+\usepackage{hyperref}
+\usepackage[normalem]{ulem}
+% Component preambles
+\usepackage{tabularx}   % block:table
+\usepackage{booktabs}   % block:table, metadata
+\usepackage{array}      % block:table
+\usepackage[export]{adjustbox}  % block:image
+\usepackage{listings}   % block:codeblock
+\usepackage{amssymb}    % block:list (task-list checkbox glyphs)
 \begin{document}
 Druckform pre-warm.
+% Exercise the float and sectioning machinery so their .aux/.toc handling is cached.
+\section{Warm}
+\begin{figure}[htbp]\centering\rule{1cm}{1cm}\caption{Warm}\label{fig:warm}\end{figure}
+See \ref{fig:warm} and a footnote.\footnote{Warm.}
+\begin{description}\item[Term] Definition.\end{description}
+% Loading amssymb is not enough: msam10/msbm10 glyph fonts are only pulled
+% into the cache when a glyph from them is actually typeset.
+$\square$ $\boxtimes$
+% Loading listings is not enough either: exercise the lstlisting environment
+% so its style/font resolution is cached too.
+\begin{lstlisting}
+warm();
+\end{lstlisting}
 \end{document}

@@ -3,3 +3,10 @@ extends: base
 components:
   badge:
     source: ./badge.component.yaml
+  loud:
+    source: ./loud.component.yaml
+  # Inline alias with a default — exercises M6: the inline render path must
+  # merge registration defaults, same as the block-level composer path does.
+  urgent:
+    extends: inlinetheme.loud
+    defaults: { tone: urgent }

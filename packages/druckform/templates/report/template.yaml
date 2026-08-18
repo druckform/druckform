@@ -1,10 +1,8 @@
 name: report
-description: "Report template — extends base with a variant-styled callout."
+description: "Report template — extends base, defaulting infobox's accent to the warning token."
 extends: base
 components:
   infobox:
     extends: base.infobox
     defaults:
       accent: warning
-  callout:
-    source: components/callout.ts

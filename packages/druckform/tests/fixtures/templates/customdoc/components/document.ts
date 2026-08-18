@@ -15,7 +15,10 @@ export function render(
     "%CUSTOMDOC",
     element.stylePreamble,
     element.componentPreamble,
-    "\\usepackage[a4paper]{geometry}",
+    // Bare \geometry, not a bracketed \usepackage load: the engine core
+    // already loads the geometry package, and loading it twice with options
+    // is an Option clash.
+    "\\geometry{a4paper}",
     "\\begin{document}",
     "DRUCKFORM_BODY",
     "\\end{document}",

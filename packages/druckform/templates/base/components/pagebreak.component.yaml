@@ -1,0 +1,10 @@
+name: pagebreak
+description: "Force a page break. Replaces the commonest use of the raw escape hatch."
+form: leaf
+params: {}
+slots:
+  children: false
+emits: |
+  \clearpage
+example: |
+  ::pagebreak

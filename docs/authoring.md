@@ -99,11 +99,37 @@ The directive syntax follows the CommonMark "generic directives" convention (the
 
 ## Built-in components
 
-The components below are from the bundled templates. Run `druck components --template <name>` to see up-to-date parameter lists for your chosen template.
+All of the components below ship in the **`base`** template, so every template that extends it (directly or transitively) has them. Run `druck components --template <name>` to see up-to-date parameter lists for your chosen template.
 
-### `infobox` (template: base)
+### `callout`
 
-A boxed callout with a title and body.
+A variant-styled, titled box. Container form.
+
+```markdown
+:::callout{variant="warn" title="Heads up"}
+Body
+:::
+```
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `title` | string | yes | none | Title shown in the header |
+| `variant` | `info` \| `tip` \| `warn` \| `danger` | no | `info` | Visual style variant, each mapped to its own colour token |
+| `accent` | token | no | (variant's token) | Style token name, overriding the variant's colour |
+
+### `note` / `tip` / `warning` / `danger`
+
+Friendly aliases for `callout` with the variant preset — `:::warning` is `callout` with `variant="warn"`, and so on (`note` → `info`, `tip` → `tip`, `danger` → `danger`). Same container form, still take `title` (required) and an optional `accent` override. The preset is only a *default*: the alias still exposes `variant`, and an explicit `variant` on the block wins over the preset — `:::note{variant="danger"}` really does render as a danger callout.
+
+```markdown
+:::warning{title="Heads up"}
+Body
+:::
+```
+
+### `infobox`
+
+Back-compat alias of `callout` with `variant="info"`, kept for documents written before `callout` existed.
 
 ```markdown
 :::infobox{title="Key Finding"}
@@ -111,25 +137,119 @@ Body text. **Markdown** is supported. Nested components are allowed.
 :::
 ```
 
-| Param | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `title` | string | yes | none | Title shown in the box header |
-| `accent` | token | no | `accent` | Style token name for the border/header colour |
+### `figure`
 
-### `callout` (template: report, extends base)
-
-A variant-styled alert box. Only available in the `report` template (and templates that extend it).
+A captioned, numbered figure wrapping any block content (e.g. an image). Container form. Emits `\label{fig:<id>}` when `id` is given, so it can be targeted by `:ref`.
 
 ```markdown
-:::callout{variant="warn" title="Heads up"}
-Body text.
+:::figure{caption="System overview" id="arch"}
+![](diagram.png)
 :::
 ```
 
 | Param | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `title` | string | yes | none | Title shown in the callout header |
-| `variant` | `info` \| `warn` \| `danger` | no | `info` | Visual style variant |
+| `caption` | string | yes | none | Figure caption |
+| `id` | string | no | none | Anchor id; referenced as `:ref[<id>]` |
+
+### `ref`
+
+Inline cross-reference to a `figure` id.
+
+```markdown
+See :ref[arch] for the layout.
+```
+
+The bracketed content is the target id (`\ref{fig:arch}`); no `{...}` params.
+
+### `pagebreak`
+
+Forces a page break. Leaf form, no params.
+
+```markdown
+::pagebreak
+```
+
+### `pullquote`
+
+Emphasised quotation, optionally attributed. Container form.
+
+```markdown
+:::pullquote{attribution="Ada Lovelace"}
+The Analytical Engine weaves algebraic patterns.
+:::
+```
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `attribution` | string | no | `""` | Text shown after the quote |
+| `accent` | token | no | `accent` | Style token name for the accent rule |
+
+### `deflist`
+
+A definition list of term/definition pairs. Leaf form — it is **not** a container; it does not take Markdown children.
+
+```markdown
+::deflist{pairs="Token=A named style value; Template=A named set of components"}
+```
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `pairs` | string | yes | none | `;`-separated `Term=Definition` pairs |
+
+### `metadata`
+
+A two-column key/value block for document metadata. Leaf form.
+
+```markdown
+::metadata{pairs="Client=Acme GmbH; Date=2026-08-17; Status=Draft"}
+```
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `pairs` | string | yes | none | `;`-separated `Key=Value` pairs |
+
+### `badge`
+
+An inline coloured label, e.g. a status marker.
+
+```markdown
+Status: :badge[DRAFT]
+```
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `accent` | token | no | `accent` | Style token name for the label colour |
+
+### `footnote`
+
+An inline footnote; the bracketed content becomes the note text.
+
+```markdown
+The figure is provisional:footnote[Measured on 2026-08-17.].
+```
+
+No `{...}` params.
+
+## Cover page, title block and TOC
+
+`base`'s `document` shell reads these optional `base` frontmatter fields (all strings; the parser coerces `toc: true` etc. to `"true"`):
+
+```yaml
+---
+title: Q3 Review
+subtitle: Regional performance
+author: A. Hacker
+date: 2026-08-17
+cover: "true"
+toc: "true"
+---
+```
+
+- `title` — renders a centered title block; omit it and no title block is rendered at all.
+- `subtitle`, `author`, `date` — each renders an extra line under the title, only if `title` is also set.
+- `cover: "true"` — puts the title block on its own page (vertically centered, `\clearpage` after). Without it, the title block runs inline at the top of page one.
+- `toc: "true"` — inserts `\tableofcontents` (and a page break) right after the title block.
 
 ## Diagrams
 
@@ -166,7 +286,7 @@ Templates define which components are available. Use `druck templates --json` to
 | Name | Extends | Description |
 |------|---------|-------------|
 | `base` | none | Foundational components for all documents |
-| `report` | `base` | Extends base with a variant-styled callout |
+| `report` | `base` | Extends base; defaults `infobox`'s accent to the `warning` token |
 
 The `report` template inherits all components from `base` and adds or overrides its own. Template extensions are transitive.
 
@@ -186,6 +306,13 @@ tokens:
     mono: "JetBrains Mono"     # monospace font
   spacing:
     blockGap: "0.8em"          # vertical gap between blocks
+  page:
+    size: a4                   # a4 | letter — default a4
+    margin: "2.5cm"            # applied to all four sides unless overridden below
+    # top: "3cm"                # per-side overrides; each is optional
+    # bottom: "3cm"
+    # left: "2cm"
+    # right: "2cm"
 diagrams:
   mermaid:
     theme: "neutral"           # mermaid theme name
@@ -201,6 +328,7 @@ diagrams:
 - The `diagrams` block is entirely optional.
 - There is no `fonts.sans` / `\setsansfont`: only `fonts.main` (→ `\setmainfont`) and `fonts.mono` (→ `\setmonofont`) are supported.
 - A font can also be `{ name, options }` instead of a bare string, e.g. `main: { name: "Noto Sans", options: "AutoFakeBold=2.2" }`, useful for variable fonts where `\bfseries` would otherwise render as Regular weight. See `docs/extending-druckform.md` §4.1 for details.
+- `page.size` is `a4` or `letter`, default **a4**. `page.margin` sets all four margins at once; the per-side `page.top`/`page.bottom`/`page.left`/`page.right` override it individually. All `page` fields are optional. This compiles to `\geometry{…}`, applied after the engine loads `geometry` bare — a custom document shell must call `\geometry{...}` too, never `\usepackage[...]{geometry}` (that raises LaTeX's "Option clash").
 
 ## Bundle layout
 

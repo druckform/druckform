@@ -1,0 +1,8 @@
+name: aliasing
+description: "Fixture: cross-name component aliasing via extends."
+extends: base
+components:
+  restated:
+    extends: base.infobox
+    defaults:
+      accent: accent

@@ -24,7 +24,13 @@ export async function resolveTemplate(
   // 2. Walk chain from root to leaf, merging components
   const mergedComponents = new Map<
     string,
-    { sourcePath: string; templateDir: string; defaults: Record<string, string> }
+    {
+      sourcePath: string;
+      templateDir: string;
+      defaults: Record<string, string>;
+      description?: string;
+      example?: string;
+    }
   >();
 
   let mergedStyle: StyleConfig | undefined;
@@ -58,15 +64,30 @@ export async function resolveTemplate(
           sourcePath,
           templateDir: entry.dir,
           defaults: override.defaults ?? {},
+          ...(override.description !== undefined ? { description: override.description } : {}),
+          ...(override.example !== undefined ? { example: override.example } : {}),
         });
       } else if (override.extends) {
-        // Type-a partial override: merge defaults only, keep parent source
-        const existing = mergedComponents.get(compName);
-        if (!existing) throw new Error(`Component ${compName} extends unknown parent`);
+        // `extends: <template>.<component>` names the parent being extended. The
+        // component after the dot MAY differ from this entry's key — that is how a
+        // friendly alias is declared (`note: { extends: base.callout }`). A value
+        // with no dot is read as a bare component name. Previously the value was
+        // never parsed and the key was used instead, so aliasing was impossible and
+        // a typo'd target silently resolved to the same-named component.
+        const dot = override.extends.lastIndexOf(".");
+        const parentName = dot >= 0 ? override.extends.slice(dot + 1) : override.extends;
+        const existing = mergedComponents.get(parentName);
+        if (!existing) {
+          throw new Error(`Component '${compName}' extends unknown parent '${override.extends}'`);
+        }
+        const description = override.description ?? existing.description;
+        const example = override.example ?? existing.example;
         mergedComponents.set(compName, {
           sourcePath: existing.sourcePath,
           templateDir: existing.templateDir,
           defaults: { ...existing.defaults, ...(override.defaults ?? {}) },
+          ...(description !== undefined ? { description } : {}),
+          ...(example !== undefined ? { example } : {}),
         });
       }
       // else: component not mentioned = inherited as-is
@@ -77,9 +98,16 @@ export async function resolveTemplate(
   const components: Record<string, ResolvedComponentEntry> = {};
   await Promise.all(
     [...mergedComponents.entries()].map(
-      async ([compName, { sourcePath, templateDir, defaults }]) => {
+      async ([compName, { sourcePath, templateDir, defaults, description, example }]) => {
         const def = await loadComponent(sourcePath, "");
-        components[compName] = { def, defaults, sourcePath, templateDir };
+        components[compName] = {
+          def,
+          defaults,
+          sourcePath,
+          templateDir,
+          ...(description !== undefined ? { description } : {}),
+          ...(example !== undefined ? { example } : {}),
+        };
       },
     ),
   );

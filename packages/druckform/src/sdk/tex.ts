@@ -43,3 +43,23 @@ export function Tex(strings: TemplateStringsArray, ...values: Array<string | Raw
   }
   return out;
 }
+
+// Every run of characters outside this class collapses to a single hyphen.
+const LABEL_UNSAFE_RUN_RE = /[^A-Za-z0-9:-]+/g;
+
+/**
+ * Sanitises a user-supplied identifier for use inside a LaTeX `\label{}`/`\ref{}`
+ * argument (figure/ref ids), so the defining side (raw id) and the referencing
+ * side (already `escapeTeX`-ed id) produce byte-identical labels.
+ *
+ * `escapeTeX` turns each unsafe character into an unsafe *sequence* built only
+ * from other unsafe characters (e.g. `_` → `\_`, both outside [A-Za-z0-9:-]).
+ * Collapsing every contiguous run of unsafe characters to one hyphen therefore
+ * gives the same result whether it runs over the raw id or its escaped form —
+ * that is what keeps `figure`'s `\label{fig:...}` and `ref`'s `\ref{fig:...}`
+ * arguments in agreement for ids containing underscores, spaces, or other
+ * TeX-special punctuation. See figure.ts and ref.ts, the two call sites.
+ */
+export function sanitizeLabelId(id: string): string {
+  return id.replace(LABEL_UNSAFE_RUN_RE, "-");
+}

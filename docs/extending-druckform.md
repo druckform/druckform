@@ -521,6 +521,9 @@ tokens:
     # main: { name: "Noto Sans", options: "AutoFakeBold=2.2" }
   spacing:                      # name → any CSS/TeX length
     blockGap: "0.8em"
+  page:                         # optional — paper size and margins
+    size: a4                    # a4 | letter — default a4
+    margin: "2.5cm"             # all four sides; per-side top/bottom/left/right override it
 diagrams:                       # optional
   mermaid:  { theme: "neutral" }
   plantuml: { skinRef: "skin.puml" }   # path relative to assets/
@@ -544,9 +547,12 @@ diagrams:                       # optional
 % spacing  →  a length register
 \newlength{\druckBlockGap}
 \setlength{\druckBlockGap}{0.8em}
+
+% page  →  applied via \geometry{…}, not a package load
+\geometry{a4paper,margin=2.5cm}
 ```
 
-So token `accent` → color name **and** macro `\druckAccent`; token `blockGap` → length `\druckBlockGap`.
+So token `accent` → color name **and** macro `\druckAccent`; token `blockGap` → length `\druckBlockGap`; `page` → a single `\geometry{…}` call (size first, then `margin`, then any per-side `top`/`bottom`/`left`/`right`, in that order, since geometry honours the last option it sees for a given side).
 
 **Font options for variable fonts (bold not rendering).** A font token may be a
 bare string or `{ name, options }`; `options` is spliced as `\setmainfont{name}[options]`.
@@ -1021,18 +1027,30 @@ Real example: `report` extends `base`:
 ```yaml
 # templates/report/template.yaml
 name: report
-description: "Report template — extends base with a variant-styled callout."
+description: "Report template — extends base, defaulting infobox's accent to the warning token."
 extends: base
 components:
   infobox:                      # partial override: reuse base.infobox,
     extends: base.infobox       # just change its default accent token
     defaults:
       accent: warning
-  callout:                      # brand-new component
-    source: components/callout.ts
 ```
 
-Result: `report` has everything in `base` (all `block:*`, `infobox`) plus `callout`, and its `infobox` defaults `accent` to `warning`.
+Result: `report` has everything in `base` (all `block:*`, `callout` and its aliases, `figure`, `ref`, …) and its `infobox` defaults `accent` to `warning`.
+
+**`extends: <template>.<component>` names a component, not necessarily the same one.** The right-hand side is resolved by looking up `<component>` in `<template>`'s own component table — so it can point at a *different* component than the entry's own key. This is how `base`'s aliases are declared: `note`, `tip`, `warning`, `danger` and `infobox` are all separate entries that each `extends: base.callout` with a different `variant` default:
+
+```yaml
+# templates/base/template.yaml (excerpt)
+components:
+  callout:
+    source: components/callout.ts
+  warning:                       # a different name than the target
+    extends: base.callout        # …resolves the `callout` entry, not `warning`
+    defaults: { variant: warn }
+```
+
+The target must be declared **earlier in the same file** (or inherited from a parent template) — `callout` above `warning`, not below it. A target that resolves to nothing (a typo, or a component removed with `<name>: null`) is a load-time error, not a silent no-op.
 
 ### 6.4 Two ways to override
 
@@ -1100,9 +1118,8 @@ export const meta = { name: "document", description: "A4 + headers", acceptsChil
 export function render(_p: unknown, _c: string, _ctx: RenderCtx, el?: BlockElement | DocumentLayout): string {
   if (!el || el.kind !== "document") return "DRUCKFORM_BODY";
   return [
-    el.stylePreamble,          // compiled style (raw)
+    el.stylePreamble,          // compiled style (raw) — already applies page setup via \geometry{…}
     el.componentPreamble,      // deduped component preambles (raw)
-    "\\usepackage[a4paper,margin=2.5cm]{geometry}",
     "\\usepackage{fancyhdr}\\pagestyle{fancy}",
     "\\begin{document}",
     "DRUCKFORM_BODY",          // ← required: where the rendered body is spliced
@@ -1120,13 +1137,14 @@ slots: { children: false }
 emits: |
   {{stylePreamble}}
   {{componentPreamble}}
-  \usepackage[a4paper,margin=2.5cm]{geometry}
   \begin{document}
   {{body}}
   \end{document}
 ```
 
-**Engine-core split (important):** the composer always emits `\documentclass{…}` and the non-overridable engine packages (`fontspec`, `xcolor`, `graphicx`, `hyperref`, `ulem`) **before** your shell. These are output-correctness requirements (fonts, colors, images, links, strikethrough), so a custom `document` can't break them by omission. Your shell owns everything after: it **chooses** the documentclass value (via the payload / a param) but does **not** emit the literal `\documentclass` line, and it places the style/component preambles, page setup, title block, and the `DRUCKFORM_BODY` marker. A shell that omits the body marker is rejected at compose time.
+**Engine-core split (important):** the composer always emits `\documentclass{…}` and the non-overridable engine packages (`fontspec`, `xcolor`, `graphicx`, `geometry`, `hyperref`, `ulem`) **before** your shell. These are output-correctness requirements (fonts, colors, images, page setup, links, strikethrough), so a custom `document` can't break them by omission. Your shell owns everything after: it **chooses** the documentclass value (via the payload / a param) but does **not** emit the literal `\documentclass` line, and it places the style/component preambles, page setup, title block, and the `DRUCKFORM_BODY` marker. A shell that omits the body marker is rejected at compose time.
+
+`geometry` is loaded **bare** (no options) as part of the engine core; page size and margins are applied afterwards via `\geometry{…}`, compiled from the style's `page` tokens (see [§4.1](#41-anatomy)/[§4.2](#42-what-each-token-compiles-to)). A shell wanting different page setup than the style tokens provide should call `\geometry{...}` itself — never `\usepackage[...]{geometry}` again, which raises LaTeX's "Option clash for package geometry" because the package is already loaded. `druck doctor` flags this (see [§10 Common errors](#common-errors)).
 
 ### 6.6 Validate a template with `druck doctor`
 
@@ -1319,9 +1337,10 @@ re-exported from `@druckform/core`; reference it structurally as `{ name: string
 \usepackage{fontspec}
 \usepackage{xcolor}
 \usepackage{graphicx}
+\usepackage{geometry}       % loaded bare — page size/margins applied below via \geometry{…}
 \usepackage{hyperref}
 \usepackage[normalem]{ulem}
-<style preamble>            % from compileStyle(style.yaml)
+<style preamble>            % from compileStyle(style.yaml); includes \geometry{…}
 <component preambles>       % deduped union of every used component's `preamble`
 \begin{document}
 <body>
@@ -1335,7 +1354,8 @@ re-exported from `@druckform/core`; reference it structurally as `{ name: string
 | `Missing required style token 'X'` | component needs token `X` not in style | add it to `style.yaml` (fonts → `fontMain`/`fontMono`) |
 | `Unknown component 'foo' at line N` | `::: foo` not in resolved template | check name / template / `extends` |
 | `reserved 'block:' namespace … unknown component` | user template defined a non-builtin `block:*` | rename without the `block:` prefix |
-| `Component X extends unknown parent` | `extends: base.X` but parent has no `X` | fix the `extends` target or add a `source` |
+| `Component X extends unknown parent` | `extends: base.X` but parent has no `X`, or the target isn't declared earlier in the file | fix the `extends` target, reorder the entries, or add a `source` |
+| LaTeX `Option clash for package geometry` | a `document` shell (or component) loads geometry with options, e.g. `\usepackage[a4paper,margin=2.5cm]{geometry}` — the engine core already loaded it bare | replace the package load with `\geometry{...}`; `druck doctor` reports this without needing to compile |
 | LaTeX failure w/ source line | bad LaTeX from a component / missing package | add `\usepackage{...}` to the component `preamble` |
 | garbled special chars in output | unescaped user string in a TS component | wrap in `escapeTeX(...)` or use `Tex` without `raw` |
 ```

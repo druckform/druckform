@@ -1,80 +1,10 @@
 # Examples gallery
 
-The `examples` template ships three canonical, copy-pasteable components that cover the most common authoring patterns. Each demonstrates a different aspect of the component contract.
+The `examples` template extends `base` and ships one canonical, copy-pasteable component override: `fancy-table`. It demonstrates overriding a reserved `block:` component that receives a structured element payload.
 
-To use these components as a starting point, copy the relevant file into your own template's `components/` directory, rename `meta.name`, then run `druck doctor` and `druck preview-component` to verify it is wired up correctly.
+`examples` inherits `base`'s document shell and its whole prose component library (`callout` and its aliases, `figure`, `ref`, `pagebreak`, `pullquote`, `deflist`, `metadata`, `badge`, `footnote`) unchanged — the sections below show each of those using their own `meta.example`/`example` field verbatim. A test (`tests/integration/examples-gallery-drift.test.ts`) diffs every snippet on this page against the resolved component's example, so drift here fails CI rather than going unnoticed.
 
----
-
-## callout: params, children, and token declaration
-
-Demonstrates: accepting named params, rendering children, and declaring required style tokens via `meta.requiredTokens`.
-
-```ts
-import type { Component, RenderCtx } from "@druckform/core";
-import { Tex, raw } from "@druckform/core";
-import { z } from "zod";
-
-export const schema = z.object({
-  variant: z.enum(["info", "warn", "danger"]).default("info"),
-  title: z.string(),
-});
-
-export const meta = {
-  name: "callout",
-  description: "Variant-styled callout box with a title.",
-  acceptsChildren: true,
-  example: ':::callout{variant="warn" title="Heads up"}\nBody\n:::',
-  requiredTokens: ["accent", "warning"],
-};
-
-export const preamble = `\\newenvironment{callout}[2]{%
-  \\par\\vspace{0.5em}\\noindent{\\leavevmode#1\\bfseries#2}\\par
-  \\noindent\\rule{\\linewidth}{0.5pt}\\par\\smallskip\\noindent\\ignorespaces
-}{\\par\\vspace{0.5em}}`;
-
-export const render: Component<typeof schema> = (params, children, ctx: RenderCtx) => {
-  const color = params.variant === "warn" ? ctx.token("warning") : ctx.token("accent");
-  return Tex`\begin{callout}{${raw(color)}}{${params.title}}
-${raw(children)}
-\end{callout}`;
-};
-```
-
----
-
-## document: titled A4 document shell override
-
-Demonstrates: overriding the `document` component to control geometry, preamble placement, and the title block. The shell **must** emit `DRUCKFORM_BODY`: the engine replaces this placeholder with the rendered body. It must **not** emit `\documentclass` (the engine injects that).
-
-```ts
-import type { BlockElement, DocumentLayout, RenderCtx } from "@druckform/core";
-import { z } from "zod";
-
-export const schema = z.object({});
-export const meta = { name: "document", description: "Titled A4 document shell", acceptsChildren: true };
-
-export function render(
-  _params: unknown,
-  _children: string,
-  _ctx: RenderCtx,
-  element?: BlockElement | DocumentLayout,
-): string {
-  if (!element || element.kind !== "document") return "DRUCKFORM_BODY";
-  const title = (element as DocumentLayout).frontmatter.title as string | undefined;
-  return [
-    element.stylePreamble,
-    element.componentPreamble,
-    "\\usepackage[a4paper,margin=2.5cm]{geometry}",
-    "\\begin{document}",
-    title ? `\\section*{${title}}` : "",
-    "DRUCKFORM_BODY",
-    "\\end{document}",
-  ]
-    .filter((s) => s.length > 0)
-    .join("\n");
-}
-```
+To use `fancy-table` as a starting point for your own override, copy it into your own template's `components/` directory, rename `meta.name`, then run `druck doctor` and `druck preview-component` to verify it is wired up correctly.
 
 ---
 
@@ -120,4 +50,86 @@ export function render(
 
 ---
 
-Copy one into your template's `components/`, rename `meta.name`, run `druck doctor` and `druck preview-component`.
+## callout (and its aliases `note` / `tip` / `warning` / `danger` / `infobox`)
+
+From `base`'s `components/callout.ts` (`meta.example`):
+
+```
+:::callout{variant="warn" title="Heads up"}
+Body
+:::
+```
+
+The aliases invoke the same component under a friendlier name with the variant preset, e.g. `:::warning{title="Heads up"}` … `:::`.
+
+## figure
+
+From `base`'s `components/figure.ts` (`meta.example`):
+
+```
+:::figure{caption="System overview" id="arch"}
+![](diagram.png)
+:::
+```
+
+## ref
+
+From `base`'s `components/ref.ts` (`example`):
+
+```
+See :ref[arch] for the layout.
+```
+
+## pagebreak
+
+From `base`'s `components/pagebreak.component.yaml` (`example`):
+
+```
+::pagebreak
+```
+
+## pullquote
+
+From `base`'s `components/pullquote.component.yaml` (`example`):
+
+```
+:::pullquote{attribution="Ada Lovelace"}
+The Analytical Engine weaves algebraic patterns.
+:::
+```
+
+## deflist
+
+From `base`'s `components/deflist.ts` (`meta.example`):
+
+```
+::deflist{pairs="Token=A named style value; Template=A named set of components"}
+```
+
+## metadata
+
+From `base`'s `components/metadata.ts` (`meta.example`):
+
+```
+::metadata{pairs="Client=Acme GmbH; Date=2026-08-17; Status=Draft"}
+```
+
+## badge
+
+From `base`'s `components/badge.component.yaml` (`example`):
+
+```
+Status: :badge[DRAFT]
+```
+
+## footnote
+
+From `base`'s `components/footnote.component.yaml` (`example`):
+
+```
+The figure is provisional:footnote[Measured on 2026-08-17.].
+```
+
+---
+
+Copy `fancy-table` into your template's `components/`, rename `meta.name`, run `druck doctor` and `druck preview-component`. For the prose library components above, run `druck components --template base --json` to confirm the exact params for the version you have installed.
