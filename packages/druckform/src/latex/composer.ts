@@ -23,7 +23,7 @@ interface ComposeResult {
 // They are correctness requirements of the rendered output, not layout choices:
 //   fontspec (style fonts) · xcolor (style colors) · graphicx (images) ·
 //   geometry (page size/margins) · hyperref (links) · ulem (strikethrough).
-const ENGINE_CORE = [
+export const ENGINE_CORE = [
   "\\usepackage{fontspec}",
   "\\usepackage{xcolor}",
   "\\usepackage{graphicx}",
