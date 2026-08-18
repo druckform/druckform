@@ -34,6 +34,14 @@ describe("badge", () => {
     expect(out).toContain("DRAFT");
     expect(out).not.toContain("\\par");
   });
+
+  it("puts both brackets in the same colour scope (M10)", async () => {
+    // Before the fix, `[` sat before the colour switch (body colour) and `]`
+    // sat after it (accent colour) — inconsistent. Both must now follow the
+    // colour macro, inside the same \textbf{...} group.
+    const out = await renderComponent(at("badge.component.yaml"), {}, { children: "DRAFT" });
+    expect(out).toBe("\\textbf{\\druckAccent{}[\\,DRAFT\\,]}");
+  });
 });
 
 describe("footnote", () => {

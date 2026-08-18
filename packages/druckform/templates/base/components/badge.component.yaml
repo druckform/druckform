@@ -6,6 +6,8 @@ params:
 slots:
   children: true
 # `{}` terminates the colour macro's name so it does not run into the text.
-emits: "\\textbf{[{{accent}}{}\\,{{children}}\\,]}"
+# Both brackets sit after the colour switch (inside its scope), so `[` and `]`
+# render in the same colour instead of `[` in body colour and `]` in accent.
+emits: "\\textbf{{{accent}}{}[\\,{{children}}\\,]}"
 example: |
   Status: :badge[DRAFT]
