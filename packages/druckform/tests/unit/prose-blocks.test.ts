@@ -30,7 +30,15 @@ describe("pullquote", () => {
       { attribution: "Ada L." },
       { children: "Ship it." },
     );
-    expect(out).toContain("Ada L.");
+    // Exact-output assertion, not a loose toContain: `\upshapeAda L.` also
+    // "contains" "Ada L.", which is exactly how the `\controlword{{param}}`
+    // gluing bug (\upshape + {{attribution}} with no separator producing the
+    // undefined macro \upshapeAda) slipped past this test before.
+    expect(out).toContain("\\hfill\\normalsize\\upshape Ada L.\n");
+    // General guard: a control word must never be immediately followed by a
+    // letter that isn't part of the word itself — that glues into one
+    // undefined macro name.
+    expect(out).not.toMatch(/\\upshape[A-Za-z]/);
   });
 });
 
