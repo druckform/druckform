@@ -287,6 +287,8 @@ A generated index of every `finding` in the document, with page numbers. Leaf fo
 
 `::findings-summary` may be placed before or after the findings it lists — it reads them back from a LaTeX auxiliary file rather than document order (`\@starttoc`/`\addcontentsline`, the same plain-LaTeX machinery behind `\listoffigures`). That also means it follows LaTeX's auxiliary-file contract: a `.fnd` left over in your own build directory from a previous run can show stale titles until the next render — the same property the table of contents has. Tectonic reruns automatically when that file changes, so a normal `druck render` already resolves it.
 
+Use exactly one `::findings-summary` per document. LaTeX reads the auxiliary file and truncates it in the same step, so a second one renders its heading with an empty list rather than reporting an error.
+
 ### `exec-summary`
 
 A headed, full-width executive summary — body prose, not a boxed aside. Container form.

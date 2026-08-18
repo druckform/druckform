@@ -38,7 +38,7 @@ describe("component preamble ↔ prewarm sync", () => {
     const all = loadAllTemplates(BUNDLED, undefined);
     const requiredPreamble = new Set<string>([ENGINE_CORE]);
 
-    for (const templateName of ["base", "report", "examples"]) {
+    for (const templateName of ["base", "report", "examples", "consulting"]) {
       const resolved = await resolveTemplate(templateName, all);
       for (const entry of Object.values(resolved.components)) {
         if (entry.def.preamble) requiredPreamble.add(entry.def.preamble.trim());
