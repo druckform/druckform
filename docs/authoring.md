@@ -231,6 +231,89 @@ The figure is provisional:footnote[Measured on 2026-08-17.].
 
 No `{...}` params.
 
+## `consulting` template components
+
+The `consulting` template extends `base` (so it also has everything above) and adds a family for audit/assessment findings.
+
+### `finding`
+
+An audit finding: severity, an author-assigned id, a title, and a nested body (typically `impact`/`evidence`/`recommendation`). Container form.
+
+```markdown
+:::finding{severity="high" id="F-01" title="Secrets recoverable from CI logs"}
+:::impact
+Credentials are recoverable by anyone with read access.
+:::
+:::
+```
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `severity` | `critical` \| `high` \| `medium` \| `low` | yes | none | Severity, each mapped to its own colour token (`severityCritical`/`severityHigh`/`severityMedium`/`severityLow`) |
+| `id` | string | yes | none | Author-assigned identity, e.g. `F-01`. Findings keep the id the author assigns — inserting or removing a finding never renumbers the others, unlike a LaTeX counter. Referenced as `:ref[F-01]{kind=finding}` (see [`extending-druckform.md`](extending-druckform.md#36-cross-references-figure--ref)); it renders the finding's id, not a page number |
+| `title` | string | yes | none | Finding title |
+
+The `impact`/`evidence`/`recommendation` sub-components below are meant to go inside a `:::finding` block, but nothing enforces that — each also renders standalone.
+
+### `impact` / `evidence` / `recommendation`
+
+The consequence, the evidence, and the remediation for a finding. Container form, no params; each renders its own labelled paragraph.
+
+```markdown
+:::impact
+Credentials are recoverable by anyone with read access.
+:::
+```
+
+```markdown
+:::evidence
+- `.github/workflows/deploy.yml:42` echoes `$DEPLOY_TOKEN`
+:::
+```
+
+```markdown
+:::recommendation
+Mask the variable in CI and rotate the token.
+:::
+```
+
+### `findings-summary`
+
+A generated index of every `finding` in the document, with page numbers. Leaf form, no params.
+
+```markdown
+::findings-summary
+```
+
+`::findings-summary` may be placed before or after the findings it lists — it reads them back from a LaTeX auxiliary file rather than document order (`\@starttoc`/`\addcontentsline`, the same plain-LaTeX machinery behind `\listoffigures`). That also means it follows LaTeX's auxiliary-file contract: a `.fnd` left over in your own build directory from a previous run can show stale titles until the next render — the same property the table of contents has. Tectonic reruns automatically when that file changes, so a normal `druck render` already resolves it.
+
+Use exactly one `::findings-summary` per document. LaTeX reads the auxiliary file and truncates it in the same step, so a second one renders its heading with an empty list rather than reporting an error.
+
+### `exec-summary`
+
+A headed, full-width executive summary — body prose, not a boxed aside. Container form.
+
+```markdown
+:::exec-summary
+The engagement identified three issues, one of them high severity.
+:::
+```
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `title` | string | no | `"Executive Summary"` | Heading text |
+| `accent` | token | no | `accent` | Style token name for the rule under the heading |
+
+### `appendix`
+
+Switches subsequent headings to lettered appendix sections (`\appendix`). Leaf form, no params.
+
+```markdown
+::appendix
+```
+
+`\appendix` on its own emits no visible mark on the page, so `druck preview-component` cannot render it standalone (the same known limitation applies to `pagebreak`); it renders fine as part of a real document.
+
 ## Cover page, title block and TOC
 
 `base`'s `document` shell reads these optional `base` frontmatter fields (all strings; the parser coerces `toc: true` etc. to `"true"`):
@@ -287,6 +370,7 @@ Templates define which components are available. Use `druck templates --json` to
 |------|---------|-------------|
 | `base` | none | Foundational components for all documents |
 | `report` | `base` | Extends base; defaults `infobox`'s accent to the `warning` token |
+| `consulting` | `base` | Client-facing reports and assessments: `finding` with severity, plus `impact`/`evidence`/`recommendation`, `findings-summary`, `exec-summary`, `appendix` |
 
 The `report` template inherits all components from `base` and adds or overrides its own. Template extensions are transitive.
 

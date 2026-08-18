@@ -317,6 +317,49 @@ assert_pdf "$OUT/acme.pdf" 1 \
   "10:30" "localhost:8080" \
   -- "${UNIVERSAL_FORBIDDEN[@]}"
 
+banner "Consulting family renders, and generates its findings index"
+druck render --template consulting --in consulting-document.md --style style.yaml \
+  --assets assets --out "$WORK/out/consulting.pdf" --json \
+  > "$OUT/render-consulting.json" 2> "$OUT/render-consulting.stderr" \
+  || { cat "$OUT/render-consulting.stderr" >&2; cat "$OUT/render-consulting.json" >&2; \
+       fail "consulting render failed"; }
+assert_json "consulting render contract" "$OUT/render-consulting.json" \
+  "d.schemaVersion === '1' && d.status === 'ok'"
+cp "$WORK/out/consulting.pdf" "$OUT/consulting.pdf"
+# Everything below except the index check is genuinely unambiguous evidence for
+# its own component (Impact/Evidence/Recommendation only appear inside a
+# finding body; Methodology only inside the appendix; Executive Summary is the
+# exec-summary heading) -- whole-document pdftotext is fine for these.
+assert_pdf "$OUT/consulting.pdf" 2 \
+  "Executive Summary" "Impact" "Evidence" "Recommendation" \
+  "Methodology" \
+  -- "${UNIVERSAL_FORBIDDEN[@]}"
+
+# The id/severity/title strings above are NOT safe evidence for the *index*:
+# finding.ts prints its own id, severity label and title in the finding's own
+# header line, so if \@starttoc silently read the wrong aux extension, or
+# \addcontentsline entries were dropped, the index would render as a bare
+# "Findings Summary" heading with nothing under it -- and a whole-document
+# assertion would still pass, because the finding bodies on page 2 supply
+# every one of those strings anyway. Scope this check to page 1, where the
+# fixture's ::pagebreak places the generated index and nothing else, so the
+# assertion can only pass if \listoffindings actually populated it.
+INDEX_TXT="$OUT/consulting-index.txt"
+pdftotext -f 1 -l 1 "$OUT/consulting.pdf" "$INDEX_TXT"
+assert_contains "consulting.pdf index (page 1)" "$INDEX_TXT" \
+  "Findings Summary" \
+  "F_01" "F-02" \
+  "High" "Medium" \
+  "Secrets recoverable from CI logs" "No dependency pinning"
+
+# And the "??" check in UNIVERSAL_FORBIDDEN above only proves the
+# :ref[F_01]{kind=finding} cross-reference did not dangle -- not that it
+# resolved to the right thing. A \ref that silently resolved to a page number
+# instead of the finding's id would pass every check above while still being
+# wrong (this exact mistake happened earlier in this template's development).
+assert_contains "consulting.pdf text" "$OUT/consulting.txt" \
+  "Remediation for F_01 is tracked separately"
+
 # --- 6. failure paths survive the relay -------------------------------------
 
 banner "Invalid document is rejected through the relay"

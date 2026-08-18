@@ -1,0 +1,10 @@
+name: appendix
+description: "Switch subsequent headings to lettered appendix sections."
+form: leaf
+params: {}
+slots:
+  children: false
+emits: |
+  \appendix
+example: |
+  ::appendix

@@ -148,6 +148,35 @@ Body
 
 Run `druck components -t <template>` to get each component's exact parameter names, types, required status, and a working example.
 
+## Consulting template (findings)
+
+The `consulting` template extends `base` for client-facing reports and assessments. Its centerpiece is `finding`: severity, an author-assigned id, a title, and a nested body — get this nested shape right, since it is what a real finding looks like:
+
+```markdown
+:::finding{severity="high" id="F-01" title="Secrets recoverable from CI logs"}
+:::impact
+Credentials are recoverable by anyone with read access.
+:::
+:::evidence
+- `.github/workflows/deploy.yml:42` echoes `$DEPLOY_TOKEN`
+:::
+:::recommendation
+Mask the variable in CI and rotate the token.
+:::
+:::
+```
+
+- `severity` is `critical` | `high` | `medium` | `low` (required) — each maps to its own colour token (`severityCritical`/`severityHigh`/`severityMedium`/`severityLow`, all defaulted by `consulting`'s own style, so a hand-written style file never has to declare them).
+- `id` (required) is author-assigned, e.g. `F-01`, and is never renumbered when findings are added or removed. Cross-reference it inline with `:ref[F-01]{kind=finding}` — this renders the finding's id, not a page number. (`ref`'s `kind` param defaults to `fig`; `consulting` extends the enum with `finding`.)
+- `title` (required) is the finding's title.
+- `impact` / `evidence` / `recommendation` are meant to nest inside `:::finding` as shown above, but each also renders standalone; nothing enforces the nesting.
+
+`::findings-summary` (leaf, no params) generates an index of every `finding` in the document, with page numbers, from a LaTeX auxiliary file — so it may be placed before or after the findings themselves. It follows the same auxiliary-file contract as a table of contents: a stale `.fnd` left in your own build directory can show old titles until the next render, which a normal `druck render` already performs.
+
+`:::exec-summary` (container; optional `title`, default `"Executive Summary"`; optional `accent` token) is a full-width prose summary block. `::appendix` (leaf, no params) switches subsequent headings to lettered appendix sections.
+
+Run `druck components -t consulting --json` for the authoritative param list and each component's `example`.
+
 ## Diagrams
 
 Include Mermaid or PlantUML diagrams as fenced code blocks — they are pre-rendered to PDF automatically:

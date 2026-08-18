@@ -1,0 +1,19 @@
+name: exec-summary
+description: "Headed, full-width executive summary. Body prose, not a boxed aside."
+form: container
+params:
+  title: { type: string, required: false, default: "Executive Summary" }
+  accent: { type: token, required: false, default: accent }
+slots:
+  children: true
+emits: |
+  \par\vspace{0.5em}
+  \noindent{{{accent}}\rule{\linewidth}{1.2pt}}\par
+  \noindent{\Large\bfseries {{title}}}\par\smallskip
+  \noindent\ignorespaces
+  {{children}}
+  \par\vspace{0.8em}
+example: |
+  :::exec-summary
+  The engagement identified three issues, one of them high severity.
+  :::
