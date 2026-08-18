@@ -12,4 +12,12 @@ style:
       severityHigh: "#B00020"
       severityMedium: "#B26A00"
       severityLow: "#2E5AAC"
-components: {}
+components:
+  finding:
+    source: components/finding.ts
+  impact:
+    source: components/impact.component.yaml
+  evidence:
+    source: components/evidence.component.yaml
+  recommendation:
+    source: components/recommendation.component.yaml

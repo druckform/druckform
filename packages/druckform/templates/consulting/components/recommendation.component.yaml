@@ -1,0 +1,15 @@
+name: recommendation
+description: "What to do about a finding. Belongs inside :::finding; renders standalone too."
+form: container
+params: {}
+slots:
+  children: true
+preamble: |
+  \newcommand{\druckfindingpart}[1]{\par\smallskip\noindent{\bfseries #1}\par\nobreak\noindent\ignorespaces}
+emits: |
+  \druckfindingpart{Recommendation}
+  {{children}}
+example: |
+  :::recommendation
+  Mask the variable in CI and rotate the token.
+  :::
