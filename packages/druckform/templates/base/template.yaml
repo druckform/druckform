@@ -31,19 +31,44 @@ components:
   note:
     extends: base.callout
     defaults: { variant: info }
+    description: "Info-styled callout box with a title. Alias of callout{variant=\"info\"}."
+    example: |
+      :::note{title="FYI"}
+      Body
+      :::
   tip:
     extends: base.callout
     defaults: { variant: tip }
+    description: "Tip-styled callout box with a title. Alias of callout{variant=\"tip\"}."
+    example: |
+      :::tip{title="Handy"}
+      Body
+      :::
   warning:
     extends: base.callout
     defaults: { variant: warn }
+    description: "Warning-styled callout box with a title. Alias of callout{variant=\"warn\"}."
+    example: |
+      :::warning{title="Careful"}
+      Body
+      :::
   danger:
     extends: base.callout
     defaults: { variant: danger }
+    description: "Danger-styled callout box with a title. Alias of callout{variant=\"danger\"}."
+    example: |
+      :::danger{title="Stop"}
+      Body
+      :::
   # Back-compat alias for the original component name.
   infobox:
     extends: base.callout
     defaults: { variant: info }
+    description: "Info-styled callout box with a title. Back-compat alias of callout{variant=\"info\"}."
+    example: |
+      :::infobox{title="FYI"}
+      Body
+      :::
   "block:heading":
     source: components/block-heading.ts
   "block:blockquote":

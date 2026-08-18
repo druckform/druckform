@@ -19,27 +19,37 @@ export async function componentsCommand(template: string, json: boolean): Promis
   const contract: ComponentsContract = {
     schemaVersion: "1",
     template,
-    components: Object.entries(resolved.components).map(([name, { def, sourcePath }]) => {
-      const source = (() => {
-        try {
-          return fs.readFileSync(sourcePath, "utf8");
-        } catch {
-          return undefined;
-        }
-      })();
-      return {
-        name,
-        description: def.meta.description,
-        params: def.jsonSchema,
-        acceptsChildren: def.meta.acceptsChildren,
-        // Heuristic: TS components read `element`; declarative document shells use {{body}}.
-        acceptsElement: source ? /\belement\b/.test(source) || source.includes("{{body}}") : false,
-        form: def.meta.form ?? "container",
-        contractVersion: COMPONENT_CONTRACT_VERSION,
-        ...(def.meta.example !== undefined ? { example: def.meta.example } : {}),
-        ...(source !== undefined ? { source } : {}),
-      };
-    }),
+    components: Object.entries(resolved.components).map(
+      ([name, { def, defaults, sourcePath, description, example }]) => {
+        const source = (() => {
+          try {
+            return fs.readFileSync(sourcePath, "utf8");
+          } catch {
+            return undefined;
+          }
+        })();
+        // A registration (e.g. an alias's `template.yaml` entry) may override the
+        // underlying component's own description/example — that is how `note`
+        // advertises itself instead of `callout`'s generic copy.
+        const effectiveDescription = description ?? def.meta.description;
+        const effectiveExample = example ?? def.meta.example;
+        return {
+          name,
+          description: effectiveDescription,
+          params: def.jsonSchema,
+          acceptsChildren: def.meta.acceptsChildren,
+          // Heuristic: TS components read `element`; declarative document shells use {{body}}.
+          acceptsElement: source
+            ? /\belement\b/.test(source) || source.includes("{{body}}")
+            : false,
+          form: def.meta.form ?? "container",
+          contractVersion: COMPONENT_CONTRACT_VERSION,
+          defaults,
+          ...(effectiveExample !== undefined ? { example: effectiveExample } : {}),
+          ...(source !== undefined ? { source } : {}),
+        };
+      },
+    ),
   };
 
   if (json) {

@@ -119,7 +119,7 @@ Body
 
 ### `note` / `tip` / `warning` / `danger`
 
-Friendly aliases for `callout` with the variant preset — `:::warning` is `callout` with `variant="warn"`, and so on (`note` → `info`, `tip` → `tip`, `danger` → `danger`). Same container form, still take `title` (required) and an optional `accent` override; there is no `variant` param on the alias itself.
+Friendly aliases for `callout` with the variant preset — `:::warning` is `callout` with `variant="warn"`, and so on (`note` → `info`, `tip` → `tip`, `danger` → `danger`). Same container form, still take `title` (required) and an optional `accent` override. The preset is only a *default*: the alias still exposes `variant`, and an explicit `variant` on the block wins over the preset — `:::note{variant="danger"}` really does render as a danger callout.
 
 ```markdown
 :::warning{title="Heads up"}

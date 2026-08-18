@@ -35,6 +35,8 @@ export interface ComponentsContract {
     contractVersion: string;
     example?: string;
     source?: string; // raw component source text
+    /** Param defaults this registration applies, e.g. an alias like `note: { extends: base.callout, defaults: { variant: info } }`. */
+    defaults: Record<string, string>;
   }>;
 }
 
@@ -184,6 +186,10 @@ export interface ComponentOverrideSpec {
   source?: string; // path to .ts or .component.yaml (relative to template dir)
   extends?: string; // "parentTemplate.componentName" — type-a partial override only
   defaults?: Record<string, string>;
+  /** Overrides the underlying component's meta.description in the components contract. */
+  description?: string;
+  /** Overrides the underlying component's meta.example in the components contract. */
+  example?: string;
 }
 
 /** Per-field frontmatter declaration (validated like component params). */
@@ -208,6 +214,10 @@ export interface ResolvedComponentEntry {
   defaults: Record<string, string>; // merged param defaults from inheritance chain
   sourcePath: string; // absolute path to the component's source file
   templateDir: string; // absolute root dir of the template that defines this component
+  /** Registration override for meta.description, e.g. an alias's own blurb. */
+  description?: string;
+  /** Registration override for meta.example, e.g. an alias's own copy-pasteable snippet. */
+  example?: string;
 }
 
 export interface ResolvedTemplate {
