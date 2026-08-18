@@ -23,3 +23,7 @@ components:
     source: components/recommendation.component.yaml
   findings-summary:
     source: components/findings-summary.component.yaml
+  exec-summary:
+    source: components/exec-summary.component.yaml
+  appendix:
+    source: components/appendix.component.yaml
