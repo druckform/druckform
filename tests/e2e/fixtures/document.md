@@ -80,11 +80,11 @@ The Analytical Engine weaves algebraic patterns.
 
 Status: :badge[DRAFT] with a footnote:footnote[Measured 2026-08-17.].
 
-:::figure{caption="A framed box" id="boxfig"}
+:::figure{caption="A framed box" id="box_fig"}
 \rule{2cm}{1cm}
 :::
 
-See :ref[boxfig] for the box.
+See :ref[box_fig] for the box.
 
 ::pagebreak
 

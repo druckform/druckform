@@ -74,7 +74,7 @@ From `base`'s `components/figure.ts` (`meta.example`):
 
 ## ref
 
-From `base`'s `components/ref.component.yaml` (`example`):
+From `base`'s `components/ref.ts` (`example`):
 
 ```
 See :ref[arch] for the layout.

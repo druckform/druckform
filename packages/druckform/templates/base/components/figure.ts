@@ -1,4 +1,4 @@
-import { type Component, type RenderCtx, escapeTeX } from "@druckform/core";
+import { type Component, type RenderCtx, escapeTeX, sanitizeLabelId } from "@druckform/core";
 import { z } from "zod";
 
 export const schema = z.object({
@@ -17,7 +17,9 @@ export const meta = {
 // No preamble: `figure` and `\caption` are LaTeX built-ins and graphicx is
 // already in the engine core.
 export const render: Component<typeof schema> = (params, children, _ctx: RenderCtx) => {
-  const label = params.id ? `\n\\label{fig:${params.id}}` : "";
+  // Sanitised through the same code path `ref` uses, so a `:ref[...]` to this
+  // id resolves to a byte-identical \label{fig:...} argument. See sdk/tex.ts.
+  const label = params.id ? `\n\\label{fig:${sanitizeLabelId(params.id)}}` : "";
   return [
     "\\begin{figure}[htbp]",
     "\\centering",

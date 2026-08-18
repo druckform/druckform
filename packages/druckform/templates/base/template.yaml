@@ -61,7 +61,7 @@ components:
   figure:
     source: components/figure.ts
   ref:
-    source: components/ref.component.yaml
+    source: components/ref.ts
   pagebreak:
     source: components/pagebreak.component.yaml
   pullquote:

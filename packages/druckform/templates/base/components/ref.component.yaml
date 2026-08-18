@@ -1,9 +1,0 @@
-name: ref
-description: "Inline cross-reference to a figure id, e.g. :ref[arch]."
-form: inline
-params: {}
-slots:
-  children: true
-emits: "\\ref{fig:{{children}}}"
-example: |
-  See :ref[arch] for the layout.

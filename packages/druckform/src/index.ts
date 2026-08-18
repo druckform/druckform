@@ -1,4 +1,4 @@
-export { escapeTeX, Tex, raw, RawTeX } from "./sdk/tex.js";
+export { escapeTeX, Tex, raw, RawTeX, sanitizeLabelId } from "./sdk/tex.js";
 export { resolveAssetPath } from "./sdk/asset-path.js";
 export { tokenRef } from "./sdk/token-ref.js";
 export { z } from "zod";

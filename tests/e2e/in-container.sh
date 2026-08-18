@@ -101,7 +101,7 @@ assert_pdf() {
 # it reaches the PDF, the placeholder substitution regressed (this has shipped
 # broken once already). ':::' or '\begin{' in the text layer means a directive
 # or component silently failed to render.
-UNIVERSAL_FORBIDDEN=(DRUCKFORMDIAGRAM ":::" "\\begin{")
+UNIVERSAL_FORBIDDEN=(DRUCKFORMDIAGRAM ":::" "\\begin{" "??")
 
 mkdir -p "$OUT"
 
