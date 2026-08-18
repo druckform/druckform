@@ -1,0 +1,8 @@
+name: loud
+description: inline tone-tagged badge, used to test registration defaults on the inline render path
+form: inline
+params:
+  tone: { type: string, required: false, default: "normal" }
+slots:
+  children: true
+emits: "\\fbox{[{{tone}}] {{children}}}"
