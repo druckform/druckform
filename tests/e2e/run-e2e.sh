@@ -15,6 +15,10 @@
 #   ./tests/e2e/run-e2e.sh my-image:tag     # use an existing image tag
 #   E2E_SKIP_BUILD=1 ./tests/e2e/run-e2e.sh # reuse an already-built image
 #
+# E2E_SKIP_BUILD refuses to run if the image was built from different source
+# than the working tree, because the render relays into the image and would
+# silently test the old code. Set E2E_ALLOW_STALE_IMAGE=1 to override.
+#
 # Requires Docker with --privileged available (the harness runs a nested daemon).
 set -euo pipefail
 
@@ -27,6 +31,31 @@ ARTIFACTS="$STAGING/artifacts"
 
 cd "$REPO_ROOT"
 
+# Fingerprint everything that ends up inside the image. E2E_SKIP_BUILD reuses a
+# previously built image, and if that image predates the code under test the
+# suite tests the old code and fails in ways that look like product bugs: a run
+# during the consulting work reported `Template not found: 'consulting'` from a
+# correctly-working relay, and cost a quarter of an hour to diagnose. Comparing
+# this against the hash recorded at build time turns that into an instant error.
+# A command, not a shell function: xargs execs a binary and would silently skip
+# a function, leaving every fingerprint identical and the guard inert.
+if command -v shasum >/dev/null 2>&1; then
+  SHA_CMD="shasum -a 256"
+elif command -v sha256sum >/dev/null 2>&1; then
+  SHA_CMD="sha256sum"
+else
+  echo "ERROR: neither shasum nor sha256sum found; cannot fingerprint the image" >&2
+  exit 1
+fi
+
+source_fingerprint() {
+  find packages/druckform/src packages/druckform/templates docker Dockerfile -type f 2>/dev/null \
+    | LC_ALL=C sort \
+    | xargs $SHA_CMD \
+    | $SHA_CMD \
+    | cut -d" " -f1
+}
+
 echo "=== Preparing staging dir ==="
 if [ "${E2E_SKIP_BUILD:-0}" = "1" ]; then
   # Keep image.tar so an iteration run skips the multi-minute docker save.
@@ -36,13 +65,43 @@ else
 fi
 mkdir -p "$STAGING" "$ARTIFACTS"
 
+FINGERPRINT_FILE="$STAGING/image-source.sha"
+CURRENT_FINGERPRINT="$(source_fingerprint)"
+
 if [ "${E2E_SKIP_BUILD:-0}" = "1" ]; then
   echo "=== Skipping image build (E2E_SKIP_BUILD=1), expecting $IMAGE to exist ==="
   docker image inspect "$IMAGE" >/dev/null \
     || { echo "ERROR: $IMAGE not found and build was skipped" >&2; exit 1; }
+
+  BUILT_FINGERPRINT="$(cat "$FINGERPRINT_FILE" 2>/dev/null || echo "")"
+  if [ "$BUILT_FINGERPRINT" != "$CURRENT_FINGERPRINT" ]; then
+    if [ "${E2E_ALLOW_STALE_IMAGE:-0}" = "1" ]; then
+      echo "WARNING: $IMAGE predates the current source; continuing because" >&2
+      echo "         E2E_ALLOW_STALE_IMAGE=1. Failures may be from the old image." >&2
+    else
+      {
+        echo "ERROR: $IMAGE was built from different source than the working tree."
+        if [ -z "$BUILT_FINGERPRINT" ]; then
+          echo "       No fingerprint was recorded, so the image's age is unknown."
+        else
+          echo "       built: $BUILT_FINGERPRINT"
+          echo "       now:   $CURRENT_FINGERPRINT"
+        fi
+        echo
+        echo "The render relays into the image, so the CLI *inside* the container"
+        echo "would run the old code -- typically surfacing as a missing template"
+        echo "or component rather than as a stale-image error."
+        echo
+        echo "Re-run without E2E_SKIP_BUILD=1, or set E2E_ALLOW_STALE_IMAGE=1 if"
+        echo "you are deliberately testing the older image."
+      } >&2
+      exit 1
+    fi
+  fi
 else
   echo "=== Building druckform image: $IMAGE ==="
   docker build -t "$IMAGE" .
+  echo "$CURRENT_FINGERPRINT" > "$FINGERPRINT_FILE"
 fi
 
 echo "=== Packing the npm tarballs ==="

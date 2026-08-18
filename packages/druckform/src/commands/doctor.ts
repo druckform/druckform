@@ -20,6 +20,53 @@ interface DeclYaml {
 
 const DOCUMENT_SLOTS = new Set(["stylePreamble", "componentPreamble", "documentclass", "body"]);
 
+/**
+ * Blanks out `//` and block comments so the source heuristics below match real
+ * code only. They are plain regexes over the file text, so without this a
+ * `ctx.token("...")`-shaped example *inside a comment* reports the component as
+ * using an undeclared token — a false positive that has cost real debugging
+ * time, and one that pushes authors into wording comments around the linter.
+ *
+ * String and template-literal contents are skipped so a `//` inside a URL or a
+ * LaTeX fragment does not swallow the rest of the line. Comment bodies are
+ * replaced with spaces rather than removed, keeping every offset intact.
+ * Over-stripping would only ever *miss* a warning; the previous behaviour
+ * invented them.
+ */
+function blankComments(src: string): string {
+  const out = src.split("");
+  let i = 0;
+  while (i < src.length) {
+    const c = src[i];
+    const next = src[i + 1];
+    if (c === '"' || c === "'" || c === "`") {
+      const quote = c;
+      i++;
+      while (i < src.length) {
+        if (src[i] === "\\") {
+          i += 2;
+          continue;
+        }
+        if (src[i] === quote) break;
+        i++;
+      }
+      i++;
+    } else if (c === "/" && next === "/") {
+      while (i < src.length && src[i] !== "\n") out[i++] = " ";
+    } else if (c === "/" && next === "*") {
+      const end = src.indexOf("*/", i + 2);
+      const stop = end === -1 ? src.length : end + 2;
+      while (i < stop) {
+        if (out[i] !== "\n") out[i] = " ";
+        i++;
+      }
+    } else {
+      i++;
+    }
+  }
+  return out.join("");
+}
+
 function checkDeclarativeSlots(resolved: ResolvedTemplate, findings: Finding[]): void {
   for (const [name, entry] of Object.entries(resolved.components)) {
     const ext = entry.sourcePath.toLowerCase();
@@ -49,7 +96,7 @@ function checkDeclarativeSlots(resolved: ResolvedTemplate, findings: Finding[]):
 function checkTsSource(resolved: ResolvedTemplate, findings: Finding[]): void {
   for (const [name, entry] of Object.entries(resolved.components)) {
     if (!/\.(ts|js|mjs)$/i.test(entry.sourcePath)) continue;
-    const src = fs.readFileSync(entry.sourcePath, "utf8");
+    const src = blankComments(fs.readFileSync(entry.sourcePath, "utf8"));
     const used = new Set<string>();
     for (const m of src.matchAll(/(?:ctx\.token|tokenRef)\(\s*["']([^"']+)["']\s*\)/g)) {
       if (m[1]) used.add(m[1]);

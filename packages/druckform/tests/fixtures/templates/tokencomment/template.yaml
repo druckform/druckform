@@ -1,0 +1,5 @@
+name: tokencomment
+extends: base
+components:
+  commented:
+    source: components/commented.ts
