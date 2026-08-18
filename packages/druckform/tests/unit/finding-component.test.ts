@@ -61,6 +61,15 @@ describe("finding", () => {
     expect(label).toBeDefined();
     expect(target).toBe(label);
   });
+
+  // A finding's id IS its display name (unlike figure's auto-numbering), so
+  // :ref[F-01]{kind=finding} must print "F-01", not a page number: the
+  // current label is set from the id, never from \thepage.
+  it("sets the current label to the finding's own id, not the page", async () => {
+    const out = await renderComponent(at("finding.ts"), base);
+    expect(out).toContain("\\druckcurrentfindinglabel{F-01}");
+    expect(out).not.toContain("\\thepage");
+  });
 });
 
 describe("finding sub-components", () => {

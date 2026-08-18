@@ -21,3 +21,5 @@ components:
     source: components/evidence.component.yaml
   recommendation:
     source: components/recommendation.component.yaml
+  findings-summary:
+    source: components/findings-summary.component.yaml

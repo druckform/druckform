@@ -22,6 +22,18 @@ export const meta = {
   requiredTokens: ["severityCritical", "severityHigh", "severityMedium", "severityLow"],
 };
 
+// A finding has no LaTeX counter (ids are author-assigned strings, not
+// \refstepcounter'd), so plain \label leaves \@currentlabel unset and
+// :ref[...]{kind=finding} would silently print nothing (not even "??",
+// since the label itself does exist). A finding's id IS its display name
+// (unlike figure, where the author never types the number \ref supplies),
+// so \druckcurrentfindinglabel sets the current label to the finding's own
+// (already-escaped) id immediately before \label is called, and \ref prints
+// that id back. Page numbers remain available via the ordinary \pageref.
+export const preamble = `\\makeatletter
+\\newcommand{\\druckcurrentfindinglabel}[1]{\\gdef\\@currentlabel{#1}}
+\\makeatother`;
+
 const SEVERITY_TOKEN = {
   critical: "severityCritical",
   high: "severityHigh",
@@ -45,11 +57,13 @@ export const render: Component<typeof schema> = (params, children, ctx: RenderCt
   // params.id and params.title are user input and go through Tex's
   // auto-escaping; colour, severity and label are trusted/already-sanitised
   // and are wrapped in raw() to skip it. children arrives already rendered
-  // (see ref.ts's comment on the same convention).
+  // (see ref.ts's comment on the same convention). params.id is interpolated
+  // a second time (still auto-escaped by Tex) as the argument that becomes
+  // \@currentlabel, so \ref{finding:...} prints the escaped id, not \thepage.
   return Tex`\par\vspace{0.8em}
 {${raw(colour)}\rule{\linewidth}{1.2pt}}\par
 \noindent{${raw(colour)}\bfseries ${params.id}\quad ${raw(severity)}}\quad{\bfseries ${params.title}}\par
-\label{finding:${raw(label)}}
+\druckcurrentfindinglabel{${params.id}}\label{finding:${raw(label)}}
 \addcontentsline{fnd}{finding}{\protect\findingentry{${params.id}}{${raw(severity)}}{${params.title}}}
 \smallskip
 ${raw(children)}

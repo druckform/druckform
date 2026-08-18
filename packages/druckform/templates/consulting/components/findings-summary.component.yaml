@@ -1,0 +1,19 @@
+name: findings-summary
+description: "Generated index of every finding in the document, with page numbers."
+form: leaf
+params: {}
+slots:
+  children: false
+# \@starttoc reads <jobname>.fnd, which `finding` fills via \addcontentsline.
+# Tectonic reruns automatically when that file changes, so the page numbers
+# resolve in a single `druck render` — the same way the table of contents does.
+preamble: |
+  \makeatletter
+  \newcommand{\findingentry}[3]{\makebox[4.5em][l]{#1}\makebox[6em][l]{#2}#3}
+  \newcommand{\l@finding}[2]{\par\noindent #1 \dotfill\ #2\par}
+  \newcommand{\listoffindings}{\section*{Findings Summary}\@starttoc{fnd}}
+  \makeatother
+emits: |
+  \listoffindings
+example: |
+  ::findings-summary
