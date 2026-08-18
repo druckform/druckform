@@ -56,3 +56,22 @@ describe("ref", () => {
     expect(refLabel).toBe(figureLabel);
   });
 });
+
+describe("ref kind", () => {
+  it("defaults to the figure namespace", async () => {
+    const out = await renderComponent(REF, {}, { children: "arch" });
+    expect(out).toContain("\\ref{fig:arch}");
+  });
+
+  it("references a finding when kind=finding", async () => {
+    const out = await renderComponent(REF, { kind: "finding" }, { children: "F-01" });
+    expect(out).toContain("\\ref{finding:F-01}");
+  });
+
+  // An unknown kind must fail loudly at validation time. A free-form string
+  // would instead emit \ref{typo:F-01}, which LaTeX renders as "??" with only
+  // a warning — the silent failure this enum exists to prevent.
+  it("rejects an unknown kind", async () => {
+    await expect(renderComponent(REF, { kind: "sektion" }, { children: "F-01" })).rejects.toThrow();
+  });
+});
