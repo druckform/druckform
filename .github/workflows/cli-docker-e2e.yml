@@ -51,6 +51,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Stamped onto the image as a label so the e2e suite can tell it matches
+      # this checkout. Without it the E2E_SKIP_BUILD guard has nothing to
+      # compare against and refuses to run.
+      - name: Fingerprint the image source
+        id: source-sha
+        run: echo "sha=$(./tests/e2e/source-fingerprint.sh)" >> "$GITHUB_OUTPUT"
+
       # Same gha cache as docker-build-test.yml, so on a PR that runs both this
       # is a cache hit rather than a second full build of the Tectonic prewarm.
       - name: Build druckform image
@@ -60,6 +67,8 @@ jobs:
           push: false
           load: true
           tags: druckform:e2e
+          build-args: |
+            DRUCKFORM_SOURCE_SHA=${{ steps.source-sha.outputs.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

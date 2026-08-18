@@ -36,24 +36,20 @@ cd "$REPO_ROOT"
 # suite tests the old code and fails in ways that look like product bugs: a run
 # during the consulting work reported `Template not found: 'consulting'` from a
 # correctly-working relay, and cost a quarter of an hour to diagnose. Comparing
-# this against the hash recorded at build time turns that into an instant error.
-# A command, not a shell function: xargs execs a binary and would silently skip
-# a function, leaving every fingerprint identical and the guard inert.
-if command -v shasum >/dev/null 2>&1; then
-  SHA_CMD="shasum -a 256"
-elif command -v sha256sum >/dev/null 2>&1; then
-  SHA_CMD="sha256sum"
-else
-  echo "ERROR: neither shasum nor sha256sum found; cannot fingerprint the image" >&2
-  exit 1
-fi
+# this against the hash stamped into the image at build time turns that into an
+# instant error. The hash lives on the image as a label rather than in a file
+# under .staging, because CI builds the image in a separate step (for the shared
+# buildx cache) and then runs with E2E_SKIP_BUILD=1 -- a file this script never
+# wrote, in a directory a fresh checkout does not have.
+SOURCE_SHA_LABEL="com.druckform.source-sha"
 
-source_fingerprint() {
-  find packages/druckform/src packages/druckform/templates docker Dockerfile -type f 2>/dev/null \
-    | LC_ALL=C sort \
-    | xargs $SHA_CMD \
-    | $SHA_CMD \
-    | cut -d" " -f1
+image_fingerprint() {
+  local sha
+  sha="$(docker image inspect "$1" \
+    --format "{{index .Config.Labels \"$SOURCE_SHA_LABEL\"}}" 2>/dev/null || true)"
+  # A Go template prints "<no value>" for a missing key on a nil label map.
+  [ "$sha" = "<no value>" ] && sha=""
+  printf '%s' "$sha"
 }
 
 echo "=== Preparing staging dir ==="
@@ -65,25 +61,31 @@ else
 fi
 mkdir -p "$STAGING" "$ARTIFACTS"
 
-FINGERPRINT_FILE="$STAGING/image-source.sha"
-CURRENT_FINGERPRINT="$(source_fingerprint)"
+CURRENT_FINGERPRINT="$("$E2E_DIR/source-fingerprint.sh")"
 
 if [ "${E2E_SKIP_BUILD:-0}" = "1" ]; then
   echo "=== Skipping image build (E2E_SKIP_BUILD=1), expecting $IMAGE to exist ==="
   docker image inspect "$IMAGE" >/dev/null \
     || { echo "ERROR: $IMAGE not found and build was skipped" >&2; exit 1; }
 
-  BUILT_FINGERPRINT="$(cat "$FINGERPRINT_FILE" 2>/dev/null || echo "")"
+  BUILT_FINGERPRINT="$(image_fingerprint "$IMAGE")"
   if [ "$BUILT_FINGERPRINT" != "$CURRENT_FINGERPRINT" ]; then
     if [ "${E2E_ALLOW_STALE_IMAGE:-0}" = "1" ]; then
-      echo "WARNING: $IMAGE predates the current source; continuing because" >&2
-      echo "         E2E_ALLOW_STALE_IMAGE=1. Failures may be from the old image." >&2
+      echo "WARNING: cannot confirm $IMAGE matches the current source; continuing" >&2
+      echo "         because E2E_ALLOW_STALE_IMAGE=1. Failures may be from an old image." >&2
     else
       {
-        echo "ERROR: $IMAGE was built from different source than the working tree."
         if [ -z "$BUILT_FINGERPRINT" ]; then
-          echo "       No fingerprint was recorded, so the image's age is unknown."
+          echo "ERROR: $IMAGE carries no source fingerprint, so this script cannot tell"
+          echo "       whether it matches the working tree."
+          echo
+          echo "       Images built by this script or by the e2e workflow are stamped with"
+          echo "       one; a plain \`docker build\` is not. Rebuild with:"
+          echo
+          echo "         docker build --build-arg DRUCKFORM_SOURCE_SHA=\"\$(tests/e2e/source-fingerprint.sh)\" \\"
+          echo "           -t $IMAGE ."
         else
+          echo "ERROR: $IMAGE was built from different source than the working tree."
           echo "       built: $BUILT_FINGERPRINT"
           echo "       now:   $CURRENT_FINGERPRINT"
         fi
@@ -100,8 +102,7 @@ if [ "${E2E_SKIP_BUILD:-0}" = "1" ]; then
   fi
 else
   echo "=== Building druckform image: $IMAGE ==="
-  docker build -t "$IMAGE" .
-  echo "$CURRENT_FINGERPRINT" > "$FINGERPRINT_FILE"
+  docker build --build-arg "DRUCKFORM_SOURCE_SHA=$CURRENT_FINGERPRINT" -t "$IMAGE" .
 fi
 
 echo "=== Packing the npm tarballs ==="
@@ -114,11 +115,19 @@ pnpm -w build
 node -p "require('./packages/druckform/package.json').version" > "$STAGING/packed-version.txt"
 ls -la "$STAGING"
 
-if [ -f "$STAGING/image.tar" ] && [ "${E2E_SKIP_BUILD:-0}" = "1" ]; then
+# The nested daemon loads image.tar, not the local image, so reusing the tar
+# across runs is only safe while it still holds the image the guard above
+# approved. Keyed on the image ID, which changes on every rebuild and exists
+# even for an image built without a source fingerprint.
+TAR_IMAGE_ID_FILE="$STAGING/image-tar.id"
+IMAGE_ID="$(docker image inspect "$IMAGE" --format "{{.Id}}")"
+if [ -f "$STAGING/image.tar" ] && [ "${E2E_SKIP_BUILD:-0}" = "1" ] \
+  && [ "$(cat "$TAR_IMAGE_ID_FILE" 2>/dev/null || true)" = "$IMAGE_ID" ]; then
   echo "=== Reusing existing $STAGING/image.tar ==="
 else
   echo "=== Saving $IMAGE for the nested daemon ==="
   docker save "$IMAGE" -o "$STAGING/image.tar"
+  echo "$IMAGE_ID" > "$TAR_IMAGE_ID_FILE"
 fi
 
 echo "=== Building the e2e harness image ==="
