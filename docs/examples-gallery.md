@@ -2,7 +2,7 @@
 
 The `examples` template extends `base` and ships one canonical, copy-pasteable component override: `fancy-table`. It demonstrates overriding a reserved `block:` component that receives a structured element payload.
 
-`examples` inherits `base`'s document shell and its whole prose component library (`callout` and its aliases, `figure`, `ref`, `pagebreak`, `pullquote`, `deflist`, `metadata`, `badge`, `footnote`) unchanged — the sections below show each of those using their own `meta.example`/`example` field verbatim, so this page cannot drift from what `druck preview-component` renders.
+`examples` inherits `base`'s document shell and its whole prose component library (`callout` and its aliases, `figure`, `ref`, `pagebreak`, `pullquote`, `deflist`, `metadata`, `badge`, `footnote`) unchanged — the sections below show each of those using their own `meta.example`/`example` field verbatim. A test (`tests/integration/examples-gallery-drift.test.ts`) diffs every snippet on this page against the resolved component's example, so drift here fails CI rather than going unnoticed.
 
 To use `fancy-table` as a starting point for your own override, copy it into your own template's `components/` directory, rename `meta.name`, then run `druck doctor` and `druck preview-component` to verify it is wired up correctly.
 
