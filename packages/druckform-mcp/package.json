@@ -1,6 +1,6 @@
 {
   "name": "@druckform/mcp",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "description": "MCP adapter for druckform — HTTP upload/download + job lifecycle",
   "license": "MIT",
   "repository": {
