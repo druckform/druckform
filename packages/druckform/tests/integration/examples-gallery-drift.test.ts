@@ -41,16 +41,19 @@ function extractFence(markdown: string, heading: string): string {
 }
 
 describe("examples gallery: no drift from meta.example", () => {
-  it.each(Object.keys(HEADINGS))("%s's gallery snippet matches its resolved example", async (name) => {
-    const markdown = fs.readFileSync(GALLERY, "utf8");
-    const gallerySnippet = extractFence(markdown, HEADINGS[name] as string).trim();
+  it.each(Object.keys(HEADINGS))(
+    "%s's gallery snippet matches its resolved example",
+    async (name) => {
+      const markdown = fs.readFileSync(GALLERY, "utf8");
+      const gallerySnippet = extractFence(markdown, HEADINGS[name] as string).trim();
 
-    const all = loadAllTemplates(BUNDLED, undefined);
-    const resolved = await resolveTemplate("examples", all);
-    const entry = resolved.components[name];
-    if (!entry) throw new Error(`component '${name}' not found in resolved 'examples' template`);
-    const resolvedExample = (entry.example ?? entry.def.meta.example ?? "").trim();
+      const all = loadAllTemplates(BUNDLED, undefined);
+      const resolved = await resolveTemplate("examples", all);
+      const entry = resolved.components[name];
+      if (!entry) throw new Error(`component '${name}' not found in resolved 'examples' template`);
+      const resolvedExample = (entry.example ?? entry.def.meta.example ?? "").trim();
 
-    expect(gallerySnippet).toBe(resolvedExample);
-  });
+      expect(gallerySnippet).toBe(resolvedExample);
+    },
+  );
 });

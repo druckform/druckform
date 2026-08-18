@@ -50,10 +50,7 @@ describe("component preamble ↔ prewarm sync", () => {
     const missing = [...requiredPackages].filter((name) => !prewarmedPackages.has(name));
     expect(
       missing,
-      `Package(s) ${missing.join(", ")} are \\usepackage-d by a bundled component but ` +
-        `absent from docker/tectonic-prewarm.tex — add them there (and exercise the ` +
-        `feature they enable) or the offline Docker image cannot render documents ` +
-        `that use this component.`,
+      `Package(s) ${missing.join(", ")} are \\usepackage-d by a bundled component but absent from docker/tectonic-prewarm.tex — add them there (and exercise the feature they enable) or the offline Docker image cannot render documents that use this component.`,
     ).toEqual([]);
   });
 });
