@@ -1,5 +1,16 @@
 # @druckform/mcp
 
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies [e0b5286]
+- Updated dependencies [e0b5286]
+- Updated dependencies [be8f332]
+- Updated dependencies [be8f332]
+- Updated dependencies [e0b5286]
+  - @druckform/core@0.3.0
+
 ## 1.0.4
 
 ### Patch Changes

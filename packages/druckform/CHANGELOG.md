@@ -1,5 +1,46 @@
 # @druckform/core
 
+## 0.3.0
+
+### Minor Changes
+
+- be8f332: **Breaking (visual): documents now render A4 by default.** Bundled templates previously produced US Letter — nothing emitted `geometry`, so `\documentclass{article}`'s `letterpaper` default leaked through. Paper size and margins are now style tokens:
+
+  ```yaml
+  tokens:
+    page:
+      size: a4 # a4 | letter — default a4
+      margin: "2.5cm"
+  ```
+
+  To keep the old output, set `size: letter`.
+
+  `geometry` is now loaded (bare) by the engine core, and page setup is applied with `\geometry{…}`. A custom document shell that calls `\usepackage[…]{geometry}` will now hit LaTeX's "Option clash"; switch it to `\geometry{…}`. `druck doctor` reports this with the fix.
+
+  Also adds an opt-in cover page, title block and table of contents, driven by the frontmatter fields `title`, `subtitle`, `author`, `date`, `cover` and `toc`.
+
+- be8f332: Adds a shared prose component library to `base`, so every template inherits it: `callout` with the friendly aliases `note`/`tip`/`warning`/`danger` (and `infobox`, kept for compatibility), plus `figure`, `ref`, `pagebreak`, `pullquote`, `deflist`, `metadata`, `badge` and `footnote`. No new LaTeX packages are required.
+
+  Fixes along the way:
+
+  - `variant="danger"` rendered identically to `info`; each variant now maps to its own colour token.
+  - `base` now declares `warning` and `danger` colours, so `report` no longer fails with `Missing required style token 'warning'` against a style that defines only `accent`.
+  - `extends: <template>.<component>` now resolves the named component instead of ignoring the value and using the entry's key, so a component can be aliased under another name — and a typo'd target is an error rather than being silently ignored.
+  - `druck components` reports the registration key rather than the implementation's `meta.name`, so aliases are discoverable.
+
+### Patch Changes
+
+- e0b5286: `druck lint` no longer rejects the documented `raw` escape hatch. `raw` is a reserved directive the renderer handles itself rather than a registered component, so lint reported `Unknown component 'raw'` on documents that rendered perfectly — which broke the author → lint → render loop for anything using `:::raw{format=latex}`. Lint now skips it, matching the composer. Conversely, invoking a renderer-internal name (`document`, `block:*`) as a directive is now a lint error, as it already was at render time.
+- e0b5286: Mermaid diagrams now render in the Docker image. `mermaid-cli` (`mmdc`) was never installed in the image, so every document containing a ` ```mermaid ` fence failed — and because the CLI inside the container re-ran engine detection in `auto` mode, the missing tool surfaced as `druck: 'docker' not found` and exit 127 rather than naming Mermaid. Three fixes:
+
+  - The image installs `@mermaid-js/mermaid-cli` (pinned), reusing the Chromium already present instead of downloading its own.
+  - The Docker relay pins `DRUCK_ENGINE=local` inside the container, so a tool missing from the image reports that tool instead of attempting a second, impossible relay.
+  - Mermaid renders pass Puppeteer `--no-sandbox --disable-dev-shm-usage`, which headless Chromium requires when running as root in a container.
+
+- e0b5286: `style.yaml` now accepts the documented `{ name, options }` font form. `FontSpec` is `string | { name, options? }`, the compiler emits `\setmainfont{name}[options]` for the object form, and the extending guide documents it — but the validation schema only allowed a bare string, so `main: { name: "Noto Sans", options: "AutoFakeBold=2.2" }` failed to load with `/tokens/fonts/main must be string`.
+
+  The same schema had drifted in the other direction too: `schemas/style-v1.json`, which editors read via the `yaml-language-server` comment in style files, was missing both the font object form and mermaid `themeVariables`, so authors saw spurious warnings on keys the CLI accepts. The two copies are now generated from one exported constant and a test asserts they stay identical.
+
 ## 0.2.4
 
 ### Patch Changes
