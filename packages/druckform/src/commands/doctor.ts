@@ -117,8 +117,11 @@ function checkDocumentShell(resolved: ResolvedTemplate, findings: Finding[]): vo
 // "Option clash for package geometry", which surfaces as an opaque compile
 // failure with no hint about the cause — so name it here instead.
 // Matches both a .ts source (where the literal is escaped, \\usepackage) and a
-// declarative `emits:` block (single backslash).
-const GEOMETRY_CLASH = /\\{1,2}usepackage\[[^\]]*\]\{geometry\}/;
+// declarative `emits:` block (single backslash); \usepackage or \RequirePackage;
+// optional whitespace before the option group; and a comma-separated multi-package
+// brace group (e.g. \usepackage[a4paper]{geometry,fancyhdr}).
+export const GEOMETRY_CLASH =
+  /\\{1,2}(?:usepackage|RequirePackage)\s*\[[^\]]*\]\s*\{[^}]*\bgeometry\b[^}]*\}/;
 
 function checkGeometryClash(resolved: ResolvedTemplate, findings: Finding[]): void {
   for (const [name, entry] of Object.entries(resolved.components)) {
