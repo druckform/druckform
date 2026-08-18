@@ -30,8 +30,12 @@ export const meta = {
 // so \druckcurrentfindinglabel sets the current label to the finding's own
 // (already-escaped) id immediately before \label is called, and \ref prints
 // that id back. Page numbers remain available via the ordinary \pageref.
+// The assignment is \def inside a \begingroup rather than \gdef: \label
+// expands \@currentlabel at the point of call, so the group is enough, and a
+// global assignment would outlive the finding and be inherited by any later
+// \label that is not preceded by a counter-stepping command.
 export const preamble = `\\makeatletter
-\\newcommand{\\druckcurrentfindinglabel}[1]{\\gdef\\@currentlabel{#1}}
+\\newcommand{\\druckcurrentfindinglabel}[1]{\\def\\@currentlabel{#1}}
 \\makeatother`;
 
 const SEVERITY_TOKEN = {
@@ -63,7 +67,7 @@ export const render: Component<typeof schema> = (params, children, ctx: RenderCt
   return Tex`\par\vspace{0.8em}
 {${raw(colour)}\rule{\linewidth}{1.2pt}}\par
 \noindent{${raw(colour)}\bfseries ${params.id}\quad ${raw(severity)}}\quad{\bfseries ${params.title}}\par
-\druckcurrentfindinglabel{${params.id}}\label{finding:${raw(label)}}
+\begingroup\druckcurrentfindinglabel{${params.id}}\label{finding:${raw(label)}}\endgroup
 \addcontentsline{fnd}{finding}{\protect\findingentry{${params.id}}{${raw(severity)}}{${params.title}}}
 \smallskip
 ${raw(children)}
