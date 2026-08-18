@@ -1,5 +1,29 @@
 # @druckform/core
 
+## 0.4.0
+
+### Minor Changes
+
+- 1c42fa1: Adds the `consulting` template for client-facing reports and assessments: `finding` (severity, id, title) with nested `impact` / `evidence` / `recommendation`, plus `exec-summary` and `appendix`.
+
+  `::findings-summary` generates an index of every finding in the document, with page numbers, from the findings themselves — so the summary cannot drift from the detail. It is built on LaTeX's own list machinery and adds no new package.
+
+  `ref` gains an optional `kind` (`fig` | `finding`, default `fig`), so `:ref[F-01]{kind=finding}` cross-references a finding. Existing `:ref[...]` calls are unchanged.
+
+  Fixes `sanitizeLabelId` for ids containing `~`, `^` or `\`. Those three characters escape to words made of ordinary letters (`\textasciitilde{}` and friends), which survived the sanitiser on the referencing side but not the defining side, so `\label` and `\ref` disagreed and the reference rendered as a silent `??`. Affected `figure`/`ref` as well as the new `finding`.
+
+### Patch Changes
+
+- fdd3584: `druck doctor` no longer reports tokens that appear only inside comments. Its
+  token scan is a plain regex over the component source, so a `ctx.token("...")`
+  written in prose to explain something was reported as an undeclared token. Real
+  calls are still detected; strings containing `//` no longer swallow the rest of
+  the line.
+- 2da6679: Raises the vitest timeout to 30s. Several integration tests transpile every
+  component of every bundled template; they run in 1-3s alone but the parallel
+  pool inflates that past the 5s default, so they failed sporadically and were
+  treated as known flakes. No test asserts timing.
+
 ## 0.3.0
 
 ### Minor Changes
