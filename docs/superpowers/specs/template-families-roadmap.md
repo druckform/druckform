@@ -174,9 +174,9 @@ Ordered by how much pain they cause.
    that adds a `ref` kind widens this hole.
 3. **Label `block:heading`** so cross-references to sections work at all. Needed by
    technical documentation; useful everywhere.
-4. **`doctor`'s token scanner matches inside comments.** Its regex runs over raw source, so
-   a `ctx.token("…")`-shaped string in a *comment* reports a bogus undeclared token. Cost us
-   time twice during consulting. Making it comment-aware is small.
+4. ~~**`doctor`'s token scanner matches inside comments.**~~ **Done** (`fdd3584`) — comments
+   are blanked before the scan, string contents are respected so a `//` in a URL does not
+   swallow the line, and a fixture covers the false positive.
 5. **`preview-component` fails for leaf components emitting no visible marks.** `::appendix`
    and the pre-existing `::pagebreak` both produce "did not produce document.xdv". Wrapping
    the snippet in minimal visible content would fix both.
@@ -184,9 +184,9 @@ Ordered by how much pain they cause.
    when an entry is *wrong*, but a component nobody adds escapes coverage silently. An
    "every resolved component with an example has a heading" assertion would close it.
    Each new family makes this more likely to bite.
-7. **`run-e2e.sh` has no staleness guard.** `E2E_SKIP_BUILD=1` happily tests an image that
-   predates the code under test — it produced a convincing false "Template not found"
-   during consulting. A hash-based warning would be enough.
+7. ~~**`run-e2e.sh` has no staleness guard.**~~ **Done** (`fdd3584`) — `E2E_SKIP_BUILD=1`
+   now compares a content fingerprint of everything baked into the image and refuses to run
+   on a mismatch, with `E2E_ALLOW_STALE_IMAGE=1` as the override.
 8. **`\findingentry` uses fixed 4.5em/6em boxes**; long ids overrun the severity column.
    Cosmetic, but any new collected list should not copy the fixed-width approach.
 
@@ -200,7 +200,30 @@ Ordered by how much pain they cause.
    the invoice question needs a real scoping decision before anyone writes code.
 
 Do the cross-cutting items opportunistically, except items 1 and 3, which have a natural
-slot in the sequence above.
+slot in the sequence above. Items 4 and 7 are already done.
+
+## Making the next run faster
+
+Consulting took 2h20m wall clock: 81.5 min of implementers, 34.7 min of task reviews,
+8.6 min of final review, ~15 min of orchestration. Where to get it back:
+
+- **The e2e task alone was 29.8 min, and 14 of those produced nothing** — a stale image
+  and two turn-boundary parks. The stale guard (item 7) is now in. Also: tell the e2e
+  implementer to run the suite in the foreground of its own turn, and to do
+  sabotage/teeth-checks with `--engine local` rather than rebuilding a 1.9 GB image.
+- **Fewer, larger tasks.** Seven tasks meant seven review cycles at 4–6 min each; Task 2's
+  review cost more than the task. Batch small same-shape work into one dispatch — four
+  tasks would have been right for consulting.
+- **Reviewers should not re-run the full suite.** Nearly every one independently rebuilt
+  and ran everything. That is the controller's job once. Keep their own verification for
+  the specific claim under review — that is where they found the real defects.
+- **Write plan snippets in the codebase's conventions** (`Tex`/`raw()`, not bare `${}`), so
+  implementers do not have to deviate and then justify it.
+- **Use the cheapest model when the plan contains the complete code.** The one haiku task
+  was the fastest implementer of the run and reviewed clean.
+
+Expect ~1h15–1h30 for a comparable family. Do not cut the real-render verification: every
+genuine bug in this run passed its unit tests and died to a render.
 
 ## Method notes, for whoever picks this up
 
