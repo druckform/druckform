@@ -248,6 +248,25 @@ e2e suite covers that path:
 E2E_SKIP_BUILD=1 ./tests/e2e/run-e2e.sh   # reuse an already-built image
 ```
 
+`E2E_SKIP_BUILD=1` refuses to run when the image was built from different source
+than your working tree. The render relays *into* the image, so a stale one tests
+the old CLI and reports the difference as a missing template or component rather
+than as a stale image. Rebuild, or set `E2E_ALLOW_STALE_IMAGE=1` if that is what
+you meant.
+
+The check reads a `com.druckform.source-sha` label that the build stamps onto the
+image, so it also covers images built elsewhere — CI builds its own for the shared
+buildx cache. Build the image by hand and it carries no label, and the guard says
+so rather than assuming the worst; stamp one on with:
+
+```bash
+docker build --build-arg DRUCKFORM_SOURCE_SHA="$(tests/e2e/source-fingerprint.sh)" \
+  -t druckform:e2e .
+```
+
+`tests/e2e/test-stale-image-guard.sh` covers the guard on its own, in seconds,
+without the suite behind it.
+
 It builds the image, packs both npm tarballs, and starts a privileged harness
 container — a bare Debian box that installs Node 22 and Docker, then runs its own
 nested `dockerd`. Inside it, the packed CLI is installed with `npm install -g` and

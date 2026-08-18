@@ -63,6 +63,22 @@ describe("druck doctor", () => {
     restore();
   });
 
+  // The scan is a plain regex over the file, so a ctx.token(...)-shaped example
+  // written inside a comment used to be reported as an undeclared token. That
+  // false positive cost real debugging time and pushed authors into wording
+  // their comments around the linter.
+  it("ignores token calls that appear only in comments", async () => {
+    const USER = path.resolve(import.meta.dirname, "../fixtures/templates");
+    process.env.DRUCKFORM_TEMPLATES_DIR = USER;
+    const { writes, restore } = capture();
+    await doctorCommand("tokencomment", true);
+    const out = JSON.parse(writes.join(""));
+    expect(out.ok).toBe(true);
+    expect(out.findings).toEqual([]);
+    process.env.DRUCKFORM_TEMPLATES_DIR = undefined;
+    restore();
+  });
+
   it("errors when a document override omits the body marker", async () => {
     const USER = path.resolve(import.meta.dirname, "../fixtures/templates");
     process.env.DRUCKFORM_TEMPLATES_DIR = USER;

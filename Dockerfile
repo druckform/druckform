@@ -125,3 +125,11 @@ RUN mkdir -p /work/templates /work/components /work/styles /work/jobs
 
 ENTRYPOINT ["druck"]
 CMD ["--help"]
+
+# Fingerprint of the source that went into this image, so tests/e2e/run-e2e.sh
+# can tell a current image from one that predates the code under test. Travels
+# with the image, so it also covers images CI builds outside that script.
+# Empty when the image was built by a plain `docker build`, which the e2e guard
+# reports rather than silently trusting.
+ARG DRUCKFORM_SOURCE_SHA=""
+LABEL com.druckform.source-sha="$DRUCKFORM_SOURCE_SHA"
