@@ -1,0 +1,15 @@
+name: consulting
+description: "Consulting deliverables — findings with severity, evidence and recommendations."
+extends: base
+style:
+  tokens:
+    # Every token this template's components declare as required must have a
+    # default here, so a hand-written style that omits one gets a sensible
+    # colour instead of a "Missing required style token" error. Users still
+    # override freely via --style, which merges on top of this.
+    colors:
+      severityCritical: "#7A0012"
+      severityHigh: "#B00020"
+      severityMedium: "#B26A00"
+      severityLow: "#2E5AAC"
+components: {}

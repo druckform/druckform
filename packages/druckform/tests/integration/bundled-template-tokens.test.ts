@@ -10,7 +10,7 @@ const BUNDLED = path.resolve(import.meta.dirname, "../../templates");
 // A bundled template must be usable with no external style at all. Otherwise the
 // author has to divine which colours their chosen template needs — which is how
 // `report` came to fail on any style that did not happen to define `warning`.
-describe.each(["base", "report", "examples"])(
+describe.each(["base", "report", "examples", "consulting"])(
   "bundled template '%s' satisfies its own required tokens",
   (name) => {
     it("renders with no external style", async () => {
